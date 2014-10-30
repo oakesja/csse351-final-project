@@ -24,8 +24,8 @@ window.onload = function init() {
     
     initializeTexture(program);
 
-    createSphere(.5, .5, .5, .5);
-    createSphere(0, 0, 0, .25);
+    // createSphere(.5, .5, .5, .5);
+    createSphere(0, 0, 0, 1);
 
     initializeBuffers(program);
     
@@ -74,16 +74,24 @@ var createSphere = function(centerX, centerY, centerZ, radius){
         for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
             nextLat = latNumber == latitudeBands ? 0 : latNumber + 1;
             nextLong = longNumber == latitudeBands ? 0 : longNumber + 1;
+
+            var texUpperLeft = vec2(longNumber / longitudeBands, latNumber / latitudeBands);
+            var texLowerLeft = vec2(longNumber / longitudeBands, nextLat / latitudeBands);
+            var texUpperRight = vec2(nextLong / longitudeBands, latNumber / latitudeBands);
+            var texLowerRight = vec2(nextLong / longitudeBands, nextLat / latitudeBands);
+
             vertexData.push(
                 vertexPositionData[latNumber][longNumber],
                 vertexPositionData[nextLat][longNumber],
                 vertexPositionData[latNumber][nextLong]
             );
+            textureCoordData.push(texUpperLeft, texLowerLeft, texUpperRight);
             vertexData.push(
                 vertexPositionData[latNumber][nextLong],
                 vertexPositionData[nextLat][longNumber],
                 vertexPositionData[nextLat][nextLong]
             );
+            textureCoordData.push(texUpperRight, texLowerLeft, texLowerRight);
             vertices+=6;
         }
     }
@@ -106,13 +114,13 @@ var initializeBuffers = function(program){
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
     
-    // var tBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, flatten(textureCoordData), gl.STATIC_DRAW);
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(textureCoordData), gl.STATIC_DRAW);
     
-    // var vTexCoord = gl.getAttribLocation (program, "vTexCoord");
-    // gl.vertexAttribPointer (vTexCoord, 2, gl.FLOAT, false, 0, 0);
-    // gl.enableVertexAttribArray(vTexCoord);
+    var vTexCoord = gl.getAttribLocation (program, "vTexCoord");
+    gl.vertexAttribPointer (vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
  
 }
 
