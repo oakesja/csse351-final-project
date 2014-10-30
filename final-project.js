@@ -24,8 +24,9 @@ window.onload = function init() {
     
     initializeTexture(program);
 
-    createSphere(.5, .5, .5, .5);
-    createSphere(0, 0, 0, .25);
+    // createSphere(.5, .5, .5, .5);
+    // createSphere(0, 0, 0, .25);
+	createAsteroid(0, 0, 0, .5);
 
     initializeBuffers(program);
     
@@ -54,6 +55,51 @@ var createSphere = function(centerX, centerY, centerZ, radius){
     
     for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
         var theta = latNumber * Math.PI / latitudeBands;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+        var temp = [];
+        for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
+            var phi = longNumber * 2 * Math.PI / longitudeBands;
+            var sinPhi = Math.sin(phi);
+            var cosPhi = Math.cos(phi);
+
+            var x = cosPhi * sinTheta;
+            var y = cosTheta;
+            var z = sinPhi * sinTheta;
+            temp.push(vec4(radius * x + centerX, radius * y + centerY, radius * z + centerZ, 1));
+        }
+        vertexPositionData.push(temp);
+    }
+
+    for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
+        for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
+            nextLat = latNumber == latitudeBands ? 0 : latNumber + 1;
+            nextLong = longNumber == latitudeBands ? 0 : longNumber + 1;
+            vertexData.push(
+                vertexPositionData[latNumber][longNumber],
+                vertexPositionData[nextLat][longNumber],
+                vertexPositionData[latNumber][nextLong]
+            );
+            vertexData.push(
+                vertexPositionData[latNumber][nextLong],
+                vertexPositionData[nextLat][longNumber],
+                vertexPositionData[nextLat][nextLong]
+            );
+            vertices+=6;
+        }
+    }
+}
+
+var createAsteroid = function(centerX, centerY, centerZ, radius){
+    var latitudeBands = 5;
+    var longitudeBands = 5;
+    var vertexPositionData = [];
+    var i = 0
+	var j = 0
+    for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
+		i+= 1-Math.random();
+		// j+=i;
+        var theta = latNumber * Math.PI / latitudeBands+i;
         var sinTheta = Math.sin(theta);
         var cosTheta = Math.cos(theta);
         var temp = [];
