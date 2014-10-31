@@ -1,12 +1,24 @@
 var canvas;
-var earthTexture, sunTexture, mercuryTexture; 
+var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture; 
 var vertices = 0;
-var earthTexCords = [];
-var earthVertices = [];
 var sunTexCords = [];
 var sunVertices = [];
 var mercuryTexCords = [];
 var mercuryVertices = [];
+var venusTexCords = [];
+var venusVertices = [];
+var earthTexCords = [];
+var earthVertices = [];
+var marsTexCords = [];
+var marsVertices = [];
+var jupiterTexCords = [];
+var jupiterVertices = [];
+var saturnTexCords = [];
+var saturnVertices = [];
+var uranusTexCords = [];
+var uranusVertices = [];
+var neptuneTexCords = [];
+var neptuneVertices = [];
 var vBuffer, tBuffer;
 var maxPoints = 6000 * 12;
 
@@ -26,9 +38,15 @@ window.onload = function init() {
     initializeBuffers(program);
     initializeTextures(program);
 
-    createSphere(0, .9, 0, .1, earthVertices, earthTexCords);
-    createSphere(0, 0, 0, .1, sunVertices, sunTexCords);
-    createSphere(0, .4, 0, .1, mercuryVertices, mercuryTexCords);
+    createSphere(0, .9, 0, .1, sunVertices, sunTexCords);
+    createSphere(0, .7, 0, .1, mercuryVertices, mercuryTexCords);
+    createSphere(0, .5, 0, .1, venusVertices, venusTexCords);
+    createSphere(0, .3, 0, .1, earthVertices, earthTexCords);
+    createSphere(0, .1, 0, .1, marsVertices, marsTexCords);
+    createSphere(.5, .9, 0, .1, jupiterVertices, jupiterTexCords);
+    createSphere(.5, .7, 0, .1, saturnVertices, saturnTexCords);
+    createSphere(.5, .5, 0, .1, uranusVertices, uranusTexCords);
+    createSphere(.5, .3, 0, .1, neptuneVertices, neptuneTexCords);
    
     render();
 }
@@ -52,38 +70,44 @@ var initializeBuffers = function(program){
 }
 
 var initializeTextures = function(program){
-    earthTexture = gl.createTexture();
-    earthTexture.image = new Image();
-    earthTexture.image.onload = function(){
-        gl.bindTexture (gl.TEXTURE_2D, earthTexture);
-        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, earthTexture.image);
-        gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-        gl.bindTexture (gl.TEXTURE_2D, null);
-    }
-    earthTexture.image.src = "texture_earth.gif";
-
     sunTexture = gl.createTexture();
-    sunTexture.image = new Image();
-    sunTexture.image.onload = function(){
-        gl.bindTexture (gl.TEXTURE_2D, sunTexture);
-        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, sunTexture.image);
-        gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-        gl.bindTexture (gl.TEXTURE_2D, null);
-    }
-    sunTexture.image.src = "texture_sun.gif";
+    setupTexture(program, sunTexture, "texture_sun.gif");  
 
     mercuryTexture = gl.createTexture();
-    mercuryTexture.image = new Image();
-    mercuryTexture.image.onload = function(){
-        gl.bindTexture (gl.TEXTURE_2D, mercuryTexture);
-        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, mercuryTexture.image);
+    setupTexture(program, mercuryTexture, "texture_mercury.gif");    
+
+    venusTexture = gl.createTexture();
+    setupTexture(program, venusTexture, "texture_venus.gif"); 
+
+    earthTexture = gl.createTexture();
+    setupTexture(program, earthTexture, "texture_earth.gif");
+
+    marsTexture = gl.createTexture();
+    setupTexture(program, marsTexture, "texture_mars.gif"); 
+
+    jupiterTexture = gl.createTexture();
+    setupTexture(program, jupiterTexture, "texture_jupiter.gif"); 
+
+    saturnTexture = gl.createTexture();
+    setupTexture(program, saturnTexture, "texture_saturn.gif"); 
+
+    uranusTexture = gl.createTexture();
+    setupTexture(program, uranusTexture, "texture_uranus.gif"); 
+
+    neptuneTexture = gl.createTexture();
+    setupTexture(program, neptuneTexture, "texture_neptune.gif"); 
+}
+
+var setupTexture = function(program, texture, src){
+    texture.image = new Image();
+    texture.image.onload = function(){
+        gl.bindTexture (gl.TEXTURE_2D, texture);
+        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, texture.image);
         gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
         gl.bindTexture (gl.TEXTURE_2D, null);
     }
-    mercuryTexture.image.src = "texture_mercury.gif";
+    texture.image.src = src;
 }
 
 var createSphere = function(centerX, centerY, centerZ, radius, vertArray, texArray){
@@ -139,9 +163,15 @@ var createSphere = function(centerX, centerY, centerZ, radius, vertArray, texArr
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);        
         
-    drawSphere(earthVertices, earthTexCords, earthTexture);
     drawSphere(sunVertices, sunTexCords, sunTexture);
     drawSphere(mercuryVertices, mercuryTexCords, mercuryTexture);
+    drawSphere(venusVertices, venusTexCords, venusTexture);
+    drawSphere(earthVertices, earthTexCords, earthTexture);
+    drawSphere(marsVertices, marsTexCords, marsTexture);
+    drawSphere(jupiterVertices, jupiterTexCords, jupiterTexture);
+    drawSphere(saturnVertices, saturnTexCords, saturnTexture);
+    drawSphere(uranusVertices, uranusTexCords, uranusTexture);
+    drawSphere(neptuneVertices, neptuneTexCords, neptuneTexture);
 
     requestAnimFrame(render);
 }
