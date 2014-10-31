@@ -1,8 +1,14 @@
 var canvas;
-var texture; 
+var earthTexture, sunTexture, mercuryTexture; 
 var vertices = 0;
-var textureCoordData = [];
-var vertexData = [];
+var earthTexCords = [];
+var earthVertices = [];
+var sunTexCords = [];
+var sunVertices = [];
+var mercuryTexCords = [];
+var mercuryVertices = [];
+var vBuffer, tBuffer;
+var maxPoints = 6000 * 12;
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
@@ -11,43 +17,76 @@ window.onload = function init() {
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
-    
     gl.enable(gl.DEPTH_TEST);
 
-    //
-    //  Load shaders and initialize attribute buffers
-    //
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
     
-    initializeTexture(program);
-
-    // createSphere(.5, .5, .5, .5);
-    createSphere(0, 0, 0, 1);
-
     initializeBuffers(program);
-    
-    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
-    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
-       
+    initializeTextures(program);
+
+    createSphere(0, .9, 0, .1, earthVertices, earthTexCords);
+    createSphere(0, 0, 0, .1, sunVertices, sunTexCords);
+    createSphere(0, .4, 0, .1, mercuryVertices, mercuryTexCords);
+   
     render();
 }
 
-var initializeTexture = function(program){
-    texture = gl.createTexture();
-    texture.image = new Image();
-    texture.image.onload = function(){
-        gl.bindTexture (gl.TEXTURE_2D, texture);
-        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, texture.image);
-        gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-    }
-    texture.image.src = "earth_texture.gif";
+var initializeBuffers = function(program){
+    vBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, 16*maxPoints, gl.STATIC_DRAW );     
+    
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+    
+    tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, 8*maxPoints, gl.STATIC_DRAW);
+    
+    var vTexCoord = gl.getAttribLocation (program, "vTexCoord");
+    gl.vertexAttribPointer (vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
 }
 
-var createSphere = function(centerX, centerY, centerZ, radius){
+var initializeTextures = function(program){
+    earthTexture = gl.createTexture();
+    earthTexture.image = new Image();
+    earthTexture.image.onload = function(){
+        gl.bindTexture (gl.TEXTURE_2D, earthTexture);
+        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, earthTexture.image);
+        gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
+        gl.bindTexture (gl.TEXTURE_2D, null);
+    }
+    earthTexture.image.src = "texture_earth.gif";
+
+    sunTexture = gl.createTexture();
+    sunTexture.image = new Image();
+    sunTexture.image.onload = function(){
+        gl.bindTexture (gl.TEXTURE_2D, sunTexture);
+        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, sunTexture.image);
+        gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
+        gl.bindTexture (gl.TEXTURE_2D, null);
+    }
+    sunTexture.image.src = "texture_sun.gif";
+
+    mercuryTexture = gl.createTexture();
+    mercuryTexture.image = new Image();
+    mercuryTexture.image.onload = function(){
+        gl.bindTexture (gl.TEXTURE_2D, mercuryTexture);
+        gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, mercuryTexture.image);
+        gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
+        gl.bindTexture (gl.TEXTURE_2D, null);
+    }
+    mercuryTexture.image.src = "texture_mercury.gif";
+}
+
+var createSphere = function(centerX, centerY, centerZ, radius, vertArray, texArray){
     var latitudeBands = 30;
     var longitudeBands = 30;
     var vertexPositionData = [];
@@ -80,54 +119,38 @@ var createSphere = function(centerX, centerY, centerZ, radius){
             var texUpperRight = vec2(nextLong / longitudeBands, latNumber / latitudeBands);
             var texLowerRight = vec2(nextLong / longitudeBands, nextLat / latitudeBands);
 
-            vertexData.push(
+            vertArray.push(
                 vertexPositionData[latNumber][longNumber],
                 vertexPositionData[nextLat][longNumber],
                 vertexPositionData[latNumber][nextLong]
             );
-            textureCoordData.push(texUpperLeft, texLowerLeft, texUpperRight);
-            vertexData.push(
+            texArray.push(texUpperLeft, texLowerLeft, texUpperRight);
+            vertArray.push(
                 vertexPositionData[latNumber][nextLong],
                 vertexPositionData[nextLat][longNumber],
                 vertexPositionData[nextLat][nextLong]
             );
-            textureCoordData.push(texUpperRight, texLowerLeft, texLowerRight);
+            texArray.push(texUpperRight, texLowerLeft, texLowerRight);
             vertices+=6;
         }
     }
 }
 
-var initializeBuffers = function(program){
-    // var cBuffer = gl.createBuffer();
-    // gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    // gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
-    
-    // var vColor = gl.getAttribLocation( program, "vColor" );
-    // gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    // gl.enableVertexAttribArray( vColor);
+var render = function() {
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);        
+        
+    drawSphere(earthVertices, earthTexCords, earthTexture);
+    drawSphere(sunVertices, sunTexCords, sunTexture);
+    drawSphere(mercuryVertices, mercuryTexCords, mercuryTexture);
 
-    var vBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(vertexData), gl.STATIC_DRAW );
-    
-    var vPosition = gl.getAttribLocation( program, "vPosition" );
-    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vPosition );
-    
-    var tBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(textureCoordData), gl.STATIC_DRAW);
-    
-    var vTexCoord = gl.getAttribLocation (program, "vTexCoord");
-    gl.vertexAttribPointer (vTexCoord, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vTexCoord);
- 
+    requestAnimFrame(render);
 }
 
-
-var render = function() {
-        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);        
-            
-        gl.drawArrays( gl.TRIANGLES, 0, vertices);
-        requestAnimFrame(render);
-    }
+var drawSphere = function(vertices, texCords, texture){
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));     
+    gl.bindTexture (gl.TEXTURE_2D, texture);
+    gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
+}
