@@ -25,8 +25,8 @@ var maxPoints = 6000 * 12;
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight -15;
+    canvas.width = window.innerWidth - 15;
     
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
@@ -41,11 +41,11 @@ window.onload = function init() {
     initializeBuffers(program);
     initializeTextures(program);
 
-    createSphere(0, .9, 0, .1, sunVertices, sunTexCords);
+    createSphere(0, 0, 0, .1, sunVertices, sunTexCords);
     createSphere(0, .7, 0, .1, mercuryVertices, mercuryTexCords);
     createSphere(0, .5, 0, .1, venusVertices, venusTexCords);
     createSphere(0, .3, 0, .1, earthVertices, earthTexCords);
-    createSphere(0, .1, 0, .1, marsVertices, marsTexCords);
+    createSphere(-.3, .1, 0, .1, marsVertices, marsTexCords);
     createSphere(.2, .1, 0, .1, jupiterVertices, jupiterTexCords);
     createSphere(.5, .7, 0, .1, saturnVertices, saturnTexCords);
     createSphere(.5, .5, 0, .1, uranusVertices, uranusTexCords);
@@ -55,8 +55,8 @@ window.onload = function init() {
 }
 
 window.onresize = function() {
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight -15;
+    canvas.width = window.innerWidth -15;
     gl.viewport( 0, 0, canvas.width, canvas.height );
     render();
 }
@@ -177,22 +177,22 @@ var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
     var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
-    drawSphere(backgroundPoints, backgroundTexCords, backgroundTexture);
+    drawElement(backgroundPoints, backgroundTexCords, backgroundTexture);
         
-    drawSphere(sunVertices, sunTexCords, sunTexture);
-    drawSphere(mercuryVertices, mercuryTexCords, mercuryTexture);
-    drawSphere(venusVertices, venusTexCords, venusTexture);
-    drawSphere(earthVertices, earthTexCords, earthTexture);
-    drawSphere(marsVertices, marsTexCords, marsTexture);
-    drawSphere(jupiterVertices, jupiterTexCords, jupiterTexture);
-    drawSphere(saturnVertices, saturnTexCords, saturnTexture);
-    drawSphere(uranusVertices, uranusTexCords, uranusTexture);
-    drawSphere(neptuneVertices, neptuneTexCords, neptuneTexture);
+    drawElement(sunVertices, sunTexCords, sunTexture);
+    drawElement(mercuryVertices, mercuryTexCords, mercuryTexture);
+    drawElement(venusVertices, venusTexCords, venusTexture);
+    drawElement(earthVertices, earthTexCords, earthTexture);
+    drawElement(marsVertices, marsTexCords, marsTexture);
+    drawElement(jupiterVertices, jupiterTexCords, jupiterTexture);
+    drawElement(saturnVertices, saturnTexCords, saturnTexture);
+    drawElement(uranusVertices, uranusTexCords, uranusTexture);
+    drawElement(neptuneVertices, neptuneTexCords, neptuneTexture);
 
     requestAnimFrame(render);
 }
 
-var drawSphere = function(vertices, texCords, texture){
+var drawElement = function(vertices, texCords, texture){
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
