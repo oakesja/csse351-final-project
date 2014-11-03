@@ -1,4 +1,5 @@
 var canvas;
+var backgroundTexture;
 var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture; 
 var vertices = 0;
 var sunTexCords = [];
@@ -25,7 +26,7 @@ var maxPoints = 6000 * 12;
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
     canvas.height = window.innerHeight;
-    canvas.width = window.innerHeight;
+    canvas.width = window.innerWidth;
     
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
@@ -45,7 +46,7 @@ window.onload = function init() {
     createSphere(0, .5, 0, .1, venusVertices, venusTexCords);
     createSphere(0, .3, 0, .1, earthVertices, earthTexCords);
     createSphere(0, .1, 0, .1, marsVertices, marsTexCords);
-    createSphere(.5, .9, 0, .1, jupiterVertices, jupiterTexCords);
+    createSphere(.2, .1, 0, .1, jupiterVertices, jupiterTexCords);
     createSphere(.5, .7, 0, .1, saturnVertices, saturnTexCords);
     createSphere(.5, .5, 0, .1, uranusVertices, uranusTexCords);
     createSphere(.5, -1, 0, .1, neptuneVertices, neptuneTexCords);
@@ -55,7 +56,7 @@ window.onload = function init() {
 
 window.onresize = function() {
     canvas.height = window.innerHeight;
-    canvas.width = window.innerHeight;
+    canvas.width = window.innerWidth;
     gl.viewport( 0, 0, canvas.width, canvas.height );
     render();
 }
@@ -79,6 +80,9 @@ var initializeBuffers = function(program){
 }
 
 var initializeTextures = function(program){
+    backgroundTexture = gl.createTexture();
+    setupTexture(program, backgroundTexture, "stars.gif");  
+
     sunTexture = gl.createTexture();
     setupTexture(program, sunTexture, "texture_sun.gif");  
 
@@ -137,7 +141,7 @@ var createSphere = function(centerX, centerY, centerZ, radius, vertArray, texArr
             var x = cosPhi * sinTheta;
             var y = cosTheta;
             var z = sinPhi * sinTheta;
-            temp.push(vec4(radius * x + centerX, radius * y + centerY, radius * z + centerZ, 1));
+            temp.push(vec4((radius * x * canvas.height / canvas.width) + centerX, radius * y + centerY, radius * z + centerZ, 1));
         }
         vertexPositionData.push(temp);
     }
@@ -170,7 +174,10 @@ var createSphere = function(centerX, centerY, centerZ, radius, vertArray, texArr
 }
 
 var render = function() {
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);        
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
+    var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
+    drawSphere(backgroundPoints, backgroundTexCords, backgroundTexture);
         
     drawSphere(sunVertices, sunTexCords, sunTexture);
     drawSphere(mercuryVertices, mercuryTexCords, mercuryTexture);
