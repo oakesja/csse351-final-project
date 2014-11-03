@@ -24,12 +24,14 @@ var maxPoints = 6000 * 12;
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerHeight;
     
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+    gl.clearColor( 0, 0, 0, 1.0 );
     gl.enable(gl.DEPTH_TEST);
 
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
@@ -46,8 +48,15 @@ window.onload = function init() {
     createSphere(.5, .9, 0, .1, jupiterVertices, jupiterTexCords);
     createSphere(.5, .7, 0, .1, saturnVertices, saturnTexCords);
     createSphere(.5, .5, 0, .1, uranusVertices, uranusTexCords);
-    createSphere(.5, .3, 0, .1, neptuneVertices, neptuneTexCords);
+    createSphere(.5, -1, 0, .1, neptuneVertices, neptuneTexCords);
    
+    render();
+}
+
+window.onresize = function() {
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerHeight;
+    gl.viewport( 0, 0, canvas.width, canvas.height );
     render();
 }
 
