@@ -81,7 +81,7 @@ var initializeBuffers = function(program){
 
 var initializeTextures = function(program){
     backgroundTexture = gl.createTexture();
-    setupTexture(program, backgroundTexture, "stars.gif");  
+    setupTexture(program, backgroundTexture, "newStars.gif");  
 
     sunTexture = gl.createTexture();
     setupTexture(program, sunTexture, "texture_sun.gif");  
