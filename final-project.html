@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html>
 
+<style>
+.bg {
+    background-image: url("https://developer.mozilla.org/samples/cssref/images/startransparent.gif");
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+</style>
+
 <script id="vertex-shader" type="x-shader/x-vertex">
 
 attribute vec4 vPosition;
 attribute  vec2 vTexCoord;
-// varying vec2 fTexCoord;
+varying vec2 fTexCoord;
 
 void
 main()
 {
-	// fTexCoord = vTexCoord;
+	fTexCoord = vTexCoord;
     gl_Position = vPosition;
 }
 </script>
@@ -18,15 +28,14 @@ main()
 <script id="fragment-shader" type="x-shader/x-fragment">
 
 precision mediump float;
-// varying vec2 fTexCoord;
-// uniform sampler2D texMap;
+varying vec2 fTexCoord;
+uniform sampler2D texMap;
 
 void
 main()
 {
 
-    // gl_FragColor = texture2D(texMap, fTexCoord);
-    gl_FragColor = vec4(0, 0, 0, 1.0);
+    gl_FragColor = texture2D(texMap, fTexCoord);
 
 }
 </script>
@@ -36,9 +45,15 @@ main()
 <script type="text/javascript" src="./Common/MV.js"></script>
 <script type="text/javascript" src="final-project.js"></script>
 
-<body>
-<canvas id="gl-canvas" width="512" height="512">
+<div>
+<canvas id="gl-canvas" width="512" height="512" style="padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-top: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;">
 Oops ... your browser doesn't support the HTML5 canvas element
 </canvas>
-</body>
+</div>
 </html>
