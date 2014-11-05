@@ -2,6 +2,18 @@ var canvas;
 var backgroundTexture;
 var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture; 
 var vertices = 0;
+
+var sunRad = 54.62;
+var merRad = .191;
+var venRad = .475;
+var earthRad = 1;
+var marsRad = .265;
+var jupRad = 5.61;
+var satRad = 4.57;
+var uraRad = 1.84;
+var nepRad = 1.78;
+var pluRad = .0892;
+
 var sunTexCords = [];
 var sunVertices = [];
 var mercuryTexCords = [];
