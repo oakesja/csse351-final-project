@@ -32,8 +32,6 @@ var uranusTexCords = [];
 var uranusVertices = [];
 var neptuneTexCords = [];
 var neptuneVertices = [];
-var asteroid1TexCords = [];
-var asteroid1Vertices = [];
 var vBuffer, tBuffer;
 var maxPoints = 6000 * 12;
 
@@ -64,7 +62,6 @@ window.onload = function init() {
     createSphere(.5, .7, 0, .1, saturnVertices, saturnTexCords);
     createSphere(.5, .5, 0, .1, uranusVertices, uranusTexCords);
     createSphere(.5, -1, 0, .1, neptuneVertices, neptuneTexCords);
-	createAsteroid(0, 0, 0, .3, asteroid1Vertices, asteroid1TexCords);
    
     render();
 }
@@ -123,10 +120,7 @@ var initializeTextures = function(program){
     setupTexture(program, uranusTexture, "texture_uranus.gif"); 
 
     neptuneTexture = gl.createTexture();
-    setupTexture(program, neptuneTexture, "texture_neptune.gif");
-
-	asteroid1Texture = gl.createTexture();
-    setupTexture(program, asteroid1Texture, "texture_asteroid.gif");
+    setupTexture(program, neptuneTexture, "texture_neptune.gif"); 
 }
 
 var setupTexture = function(program, texture, src){
@@ -191,71 +185,6 @@ var createSphere = function(centerX, centerY, centerZ, radius, vertArray, texArr
     }
 }
 
-var createAsteroid = function(centerX, centerY, centerZ, radius, vertArray, texArray){
-    // The higher these values are the more
-	// variation in the edges of the asteroid
-	var latitudeBands = 15;
-    var longitudeBands = 15;
-    var vertexPositionData = [];
-	
-	var newRad = Math.random()*radius;
-    
-    for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
-        var theta = latNumber * Math.PI / latitudeBands;
-        var sinTheta = Math.sin(theta);
-        var cosTheta = Math.cos(theta);
-        var temp = [];
-        for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
-            var phi = longNumber * 2 * Math.PI / longitudeBands;
-            var sinPhi = Math.sin(phi);
-            var cosPhi = Math.cos(phi);
-
-            var x = cosPhi * sinTheta;
-            var y = cosTheta;
-            var z = sinPhi * sinTheta;
-			
-			var rand = Math.random()*10;
-			
-			if(rand<2){
-				newRad-=.005*Math.random();
-			}
-			
-			if(rand>8){
-				newRad+=.005*Math.random();
-			}
-			
-            temp.push(vec4((newRad * x * canvas.height / canvas.width) + centerX, newRad * y + centerY, newRad * z + centerZ, 1));
-        }
-        vertexPositionData.push(temp);
-    }
-
-    for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
-        for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
-            nextLat = latNumber == latitudeBands ? 0 : latNumber + 1;
-            nextLong = longNumber == latitudeBands ? 0 : longNumber + 1;
-
-            var texUpperLeft = vec2(longNumber / longitudeBands, latNumber / latitudeBands);
-            var texLowerLeft = vec2(longNumber / longitudeBands, nextLat / latitudeBands);
-            var texUpperRight = vec2(nextLong / longitudeBands, latNumber / latitudeBands);
-            var texLowerRight = vec2(nextLong / longitudeBands, nextLat / latitudeBands);
-
-            vertArray.push(
-                vertexPositionData[latNumber][longNumber],
-                vertexPositionData[nextLat][longNumber],
-                vertexPositionData[latNumber][nextLong]
-            );
-            texArray.push(texUpperLeft, texLowerLeft, texUpperRight);
-            vertArray.push(
-                vertexPositionData[latNumber][nextLong],
-                vertexPositionData[nextLat][longNumber],
-                vertexPositionData[nextLat][nextLong]
-            );
-            texArray.push(texUpperRight, texLowerLeft, texLowerRight);
-            vertices+=6;
-        }
-    }
-}
-
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
@@ -271,18 +200,6 @@ var render = function() {
     drawElement(saturnVertices, saturnTexCords, saturnTexture);
     drawElement(uranusVertices, uranusTexCords, uranusTexture);
     drawElement(neptuneVertices, neptuneTexCords, neptuneTexture);
-	// console.log(asteroid1Vertices);
-	var i;
-	for(i=0; i<asteroid1Vertices.length; i++){
-		var j = 0;
-		for(; j<asteroid1Vertices[i].length; j++){
-			if((i-j)%2==0){
-				asteroid1Vertices[i][j]+=Math.random()/1000;
-			}
-		}
-	}
-    drawElement(asteroid1Vertices, asteroid1TexCords, asteroid1Texture);
-
 
     requestAnimFrame(render);
 }
