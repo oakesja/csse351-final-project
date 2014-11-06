@@ -7,7 +7,7 @@ attribute vec4 vPosition;
 attribute vec4 vNormal;
 attribute  vec2 vTexCoord;
 varying vec2 fTexCoord;
-varying vec3 N, L, E;
+varying vec3 lightWeighting;
 uniform vec4 lightPosition;
 uniform bool isSun;
 uniform mat4 modelViewMatrix;
@@ -15,18 +15,13 @@ uniform mat4 modelViewMatrix;
 void
 main()
 {
-	vec3 pos;
-	if(isSun){
-		pos = -(modelViewMatrix * vPosition).xyz;
-	} else {
-		pos = (modelViewMatrix * vPosition).xyz;
-	}
-    vec3 light = lightPosition.xyz;
-    L = normalize( light - pos );
-    E =  -pos;
-    N = normalize((modelViewMatrix*vNormal).xyz);
+	vec4 pos = modelViewMatrix * vPosition;
+	vec3 light = (modelViewMatrix * lightPosition).xyz;
+	vec3 direction = normalize(light - pos.xyz);
+	float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
+	lightWeighting = vec3(.2, .2, .2) + vec3(.8, .8, .8) * directionalLightWeighting;
 	fTexCoord = vTexCoord;
-    gl_Position = modelViewMatrix * vPosition;
+    gl_Position = pos;
 }
 </script>
 
@@ -34,45 +29,14 @@ main()
 
 precision mediump float;
 varying vec2 fTexCoord;
+varying vec3 lightWeighting;
 uniform sampler2D texMap;
-
-uniform vec4 ambientProduct;
-uniform vec4 diffuseProduct;
-uniform vec4 specularProduct;
-uniform float shininess;
-varying vec3 N, L, E;
 
 void
 main()
 {
-
-	vec4 fColor;
-    
-    vec3 H = normalize( L + E + vec3(1, 1, 1));
-    vec4 ambient = ambientProduct;
-
-    float Kd = max( dot(L, N), 0.0 );
-    vec4  diffuse = Kd*diffuseProduct;
-
-    float Ks = pow( max(dot(N, H), 0.0), shininess );
-    vec4  specular = Ks * specularProduct;
-    
-    if( dot(L, N) < 0.0 ) specular = vec4(0.0, 0.0, 0.0, 1.0);
-
-    float m = 10.0;
-
-    mat4 t = mat4 (m, 0.0, 0.0, 0.0,
-	               0.0, m, 0.0, 0.0,
-				   0.0, 0.0, m, 0.0,
-				   0.0, 0.0, 0.0, 1.0);
-    fColor = ambient*t + diffuse +t*specular;
-    fColor.a = 1.0;
-
     vec4 texColor = texture2D(texMap, fTexCoord);
-    gl_FragColor = vec4(texColor.xyz * fColor.rgb, texColor.a);
-
-    
-
+    gl_FragColor = vec4(texColor.xyz * lightWeighting, texColor.a);
 }
 </script>
 
