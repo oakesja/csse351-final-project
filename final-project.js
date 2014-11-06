@@ -316,8 +316,8 @@ function Planet(centerX, centerY, centerZ, radius, texture, isSun){
 }
 
 function createPlanet(){
-    var latitudeBands = 30;
-    var longitudeBands = 30;
+    var latitudeBands = 20;
+    var longitudeBands = 20;
     var vertexPositionData = [];
     var normals = [];
     
