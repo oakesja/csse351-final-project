@@ -18,14 +18,14 @@ var planets = [];
 var vBuffer, tBuffer, nBuffer;
 var maxPoints = 6000 * 12;
 
-var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
-var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+// var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
+// var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+// var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var materialAmbient = vec4( .6, .6, .6, 1.0 );
-var materialDiffuse = vec4( 1.0, 1, 1.0, 1.0 );
-var materialSpecular = vec4( 1.0, 1, 1, 1.0 );
-var materialShininess = 100.0;
+var ambientColor = vec4( .6, .6, .6, 1.0 );
+var specularColor = vec4( 1.0, 1, 1.0, 1.0 );
+// var materialSpecular = vec4( 1.0, 1, 1, 1.0 );
+// var materialShininess = 100.0;
 
 var program;
 var scale = 1;
@@ -47,9 +47,9 @@ window.onload = function init() {
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
-    ambientProduct = mult(lightAmbient, materialAmbient);
-    diffuseProduct = mult(lightDiffuse, materialDiffuse);
-    specularProduct = mult(lightSpecular, materialSpecular);
+    // ambientProduct = mult(lightAmbient, materialAmbient);
+    // diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    // specularProduct = mult(lightSpecular, materialSpecular);
     
     initializeBuffers(program);
     initializeTextures(program);
@@ -96,13 +96,13 @@ var initializeBuffers = function(program){
     gl.enableVertexAttribArray(vNormal);
 
     gl.uniform4fv( gl.getUniformLocation(program, 
-       "ambientProduct"),flatten(ambientProduct) );
+       "ambientColor"),flatten(ambientColor) );
     gl.uniform4fv( gl.getUniformLocation(program, 
-       "diffuseProduct"),flatten(diffuseProduct) );
-    gl.uniform4fv( gl.getUniformLocation(program, 
-       "specularProduct"),flatten(specularProduct) );   
-    gl.uniform1f( gl.getUniformLocation(program, 
-       "shininess"),materialShininess );
+       "specularColor"),flatten(specularColor) );
+    // gl.uniform4fv( gl.getUniformLocation(program, 
+    //    "specularProduct"),flatten(specularProduct) );   
+    // gl.uniform1f( gl.getUniformLocation(program, 
+    //    "shininess"),materialShininess );
 }
 
 var initializeTextures = function(program){

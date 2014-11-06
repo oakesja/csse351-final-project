@@ -11,6 +11,8 @@ varying vec3 lightWeighting;
 uniform vec4 lightPosition;
 uniform bool isSun;
 uniform mat4 modelViewMatrix;
+uniform vec4 ambientColor;
+uniform vec4 specularColor; 
 
 void
 main()
@@ -18,8 +20,14 @@ main()
 	vec4 pos = modelViewMatrix * vPosition;
 	vec3 light = (modelViewMatrix * lightPosition).xyz;
 	vec3 direction = normalize(light - pos.xyz);
-	float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
-	lightWeighting = vec3(.2, .2, .2) + vec3(.8, .8, .8) * directionalLightWeighting;
+	if(isSun){
+		float directionalLightWeighting = max(dot(-vNormal.xyz, direction), 0.0);
+		lightWeighting = ambientColor.rgb + specularColor.rgb * directionalLightWeighting;
+	} else {
+		float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
+		lightWeighting = ambientColor.rgb + specularColor.rgb * (directionalLightWeighting * 4.0);
+	}
+	
 	fTexCoord = vTexCoord;
     gl_Position = pos;
 }
