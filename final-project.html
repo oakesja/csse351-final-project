@@ -10,22 +10,23 @@ varying vec2 fTexCoord;
 varying vec3 N, L, E;
 uniform vec4 lightPosition;
 uniform bool isSun;
+uniform mat4 modelViewMatrix;
 
 void
 main()
 {
 	vec3 pos;
 	if(isSun){
-		pos = -vPosition.xyz;
+		pos = -(modelViewMatrix * vPosition).xyz;
 	} else {
-		pos = vPosition.xyz;
+		pos = (modelViewMatrix * vPosition).xyz;
 	}
     vec3 light = lightPosition.xyz;
     L = normalize( light - pos );
     E =  -pos;
-    N = normalize(vNormal.xyz);
+    N = normalize((modelViewMatrix*vNormal).xyz);
 	fTexCoord = vTexCoord;
-    gl_Position = vPosition;
+    gl_Position = modelViewMatrix * vPosition;
 }
 </script>
 

@@ -47,7 +47,6 @@ var asteroid1Normals = [];
 var vBuffer, tBuffer, nBuffer;
 var maxPoints = 6000 * 12;
 
-var lightPosition = vec4(0.0, 0.0, 0.0, 0.0);
 var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -58,6 +57,9 @@ var materialSpecular = vec4( 1.0, 1, 1, 1.0 );
 var materialShininess = 100.0;
 
 var program;
+var scale = 1;
+var cameraX = 0;
+var cameraY = 0;
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
@@ -95,13 +97,6 @@ window.onload = function init() {
     render();
 }
 
-window.onresize = function() {
-    canvas.height = window.innerHeight -15;
-    canvas.width = window.innerWidth -15;
-    gl.viewport( 0, 0, canvas.width, canvas.height );
-    render();
-}
-
 var initializeBuffers = function(program){
     vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
@@ -133,8 +128,6 @@ var initializeBuffers = function(program){
        "diffuseProduct"),flatten(diffuseProduct) );
     gl.uniform4fv( gl.getUniformLocation(program, 
        "specularProduct"),flatten(specularProduct) );   
-    gl.uniform4fv( gl.getUniformLocation(program, 
-       "lightPosition"),flatten(lightPosition) );
     gl.uniform1f( gl.getUniformLocation(program, 
        "shininess"),materialShininess );
 }
@@ -329,18 +322,31 @@ var createAsteroid = function(centerX, centerY, centerZ, radius, vertArray, texA
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
-    var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
+    // var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
+    // var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
     
+    // gl.uniform1f( gl.getUniformLocation(program, "isBackground"), true );
     // gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundPoints));
     // gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
     // gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundTexCords));     
     // gl.bindTexture (gl.TEXTURE_2D, backgroundTexture);
     // gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
-        
+
+
+    mv = mat4  (scale, 0, 0, cameraX,
+                0, scale, 0, cameraY,
+                0, 0, scale, 0,
+                0, 0, 0, 1);
+
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mv));
+
+    var lightPosition = vec4(0, 0, 0, 1.0);
+    gl.uniform4fv( gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition) );
+
     gl.uniform1f( gl.getUniformLocation(program, "isSun"), true );
     drawElement(sunVertices, sunTexCords, sunTexture, sunNormals);
     gl.uniform1f( gl.getUniformLocation(program, "isSun"), false );
+
     drawElement(mercuryVertices, mercuryTexCords, mercuryTexture, mercuryNormals);
     drawElement(venusVertices, venusTexCords, venusTexture, venusNormals);
     drawElement(earthVertices, earthTexCords, earthTexture, earthNormals);
@@ -364,4 +370,34 @@ var drawElement = function(vertices, texCords, texture, normals){
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));     
     gl.bindTexture (gl.TEXTURE_2D, texture);
     gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
+}
+
+window.onkeydown = function(e){
+    var step = .1;
+    switch (e.keyCode) {
+        case 33:
+            scale += step;
+            render();
+            break;
+        case 34:
+            scale -= step;
+            render();
+            break;
+        case 37:
+            cameraX -= step;
+            render();
+            break;
+        case 38:
+            cameraY += step;
+            render();
+            break;
+        case 39:
+            cameraX += step;
+            render();
+            break;
+        case 40:
+            cameraY -= step;
+            render();
+            break;
+    }
 }
