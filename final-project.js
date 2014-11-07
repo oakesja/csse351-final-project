@@ -70,20 +70,6 @@ window.onload = function init() {
     initializeTextures(program);
     initializeThetas();
 
-
-    // planets.push(new Planet(0, .1, sunTexture, true));
-    // planets.push(new Planet(0, .7, 0, .1, mercuryTexture, false));
-    // planets.push(new Planet(0, .5, 0, .1, venusTexture, false));
-    // planets.push(new Planet(0, .3, 0, .1, earthTexture, false));
-    // planets.push(new Planet(-.3, .1, 0, .1, marsTexture, false));
-    // planets.push(new Planet(0.2, .1, 0, .1, jupiterTexture, false));
-    // planets.push(new Planet(.5, .7, 0, .1, saturnTexture, false));
-    // planets.push(new Planet(.5, .5, 0, .1, uranusTexture, false));
-    // planets.push(new Planet(0, -.3, 0, .1, neptuneTexture, false));
-    
-    // for(var i=0; i<planets.length; i++){
-    //     planets[i].create();
-    // }
     render();
 }
 
