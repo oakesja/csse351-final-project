@@ -24,6 +24,7 @@ var maxPoints = 6000 * 12;
 
 var ambientColor = vec4( .6, .6, .6, 1.0 );
 var specularColor = vec4( 1.0, 1, 1.0, 1.0 );
+var diffuseColor = vec4(.3, .3, .3, 1.0);
 // var materialSpecular = vec4( 1.0, 1, 1, 1.0 );
 // var materialShininess = 100.0;
 
@@ -99,6 +100,8 @@ var initializeBuffers = function(program){
        "ambientColor"),flatten(ambientColor) );
     gl.uniform4fv( gl.getUniformLocation(program, 
        "specularColor"),flatten(specularColor) );
+    gl.uniform4fv( gl.getUniformLocation(program, 
+       "diffuseColor"),flatten(diffuseColor) );
     // gl.uniform4fv( gl.getUniformLocation(program, 
     //    "specularProduct"),flatten(specularProduct) );   
     // gl.uniform1f( gl.getUniformLocation(program, 

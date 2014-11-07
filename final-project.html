@@ -13,6 +13,7 @@ uniform bool isSun;
 uniform mat4 modelViewMatrix;
 uniform vec4 ambientColor;
 uniform vec4 specularColor; 
+uniform vec4 diffuseColor;
 
 void
 main()
@@ -25,7 +26,7 @@ main()
 		lightWeighting = ambientColor.rgb + specularColor.rgb * directionalLightWeighting;
 	} else {
 		float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
-		lightWeighting = ambientColor.rgb + specularColor.rgb * (directionalLightWeighting * 4.0);
+		lightWeighting = ambientColor.rgb + diffuseColor.rgb + specularColor.rgb * (directionalLightWeighting * 4.0);
 	}
 	
 	fTexCoord = vTexCoord;
