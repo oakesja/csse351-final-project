@@ -1,6 +1,7 @@
 var canvas;
 var backgroundTexture;
 var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture; 
+var saturnRingTexture;
 
 var NUM_PLANETS = 9;
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769];
@@ -142,6 +143,9 @@ var initializeTextures = function(program){
     setupTexture(program, saturnTexture, "texture_saturn.gif"); 
     textures.push(saturnTexture);
 
+    saturnRingTexture = gl.createTexture();
+    setupTexture(program, saturnRingTexture, "texture_saturn_ring.gif"); 
+
     uranusTexture = gl.createTexture();
     setupTexture(program, uranusTexture, "texture_uranus.gif"); 
     textures.push(uranusTexture);
@@ -255,6 +259,29 @@ var render = function() {
     // gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundTexCords));     
     // gl.bindTexture (gl.TEXTURE_2D, backgroundTexture);
     // gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
+    var vertices = [];
+    var texCords = [];
+    var normals = [];
+
+    var insideRad = .2;
+    var outsideRad = .6;
+    var steps = 50;
+    var deltaTheta = Math.PI * 2 / steps;
+
+    for(var i= 0; i<steps; i++){
+      var angle1 = deltaTheta * i;
+      var angle2 = deltaTheta * (i+1);
+      var bottom1 = vec4(insideRad * Math.cos(angle1), insideRad * Math.sin(angle1), Math.cos(angle1), 1);
+      var top1 = vec4(outsideRad * Math.cos(angle1), outsideRad * Math.sin(angle1), Math.cos(angle1), 1);
+      var bottom2 = vec4(insideRad * Math.cos(angle2), insideRad * Math.sin(angle2), Math.cos(angle2), 1);
+      var top2 = vec4(outsideRad * Math.cos(angle2), outsideRad * Math.sin(angle2), Math.cos(angle2), 1);
+      vertices.push(bottom1, top1, bottom2);
+      normals.push(bottom1, top1, bottom2);
+      texCords.push(vec2(1,1), vec2(0, 1), vec2(1, 0));
+      vertices.push(top1, top2, bottom2);
+      normals.push(top1, top2, bottom2);
+      texCords.push(vec2(0,1), vec2(0, 0), vec2(1, 0));
+    }
 
 
     mv = mat4  (scale, 0, 0, cameraX,
@@ -267,6 +294,7 @@ var render = function() {
     var lightPosition = vec4(0, 0, 0, 1.0);
     gl.uniform4fv( gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition) );
 
+    drawElement(vertices, texCords, saturnRingTexture, normals);
     planets = [];
 
     planets.push(new Planet(0, .1, textures[0]));
@@ -279,20 +307,8 @@ var render = function() {
         planets[i].draw();
     }
 
-    incrementThetas();
+    // incrementThetas();
     requestAnimFrame(render);
-}
-
-
-var drawElement = function(vertices, texCords, texture, normals){
-    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(normals));
-    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
-    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));     
-    gl.bindTexture (gl.TEXTURE_2D, texture);
-    gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
 }
 
 window.onkeydown = function(e){
@@ -342,6 +358,11 @@ function Planet(planetNum, radius, texture){
     this.texCords = [];
     this.create = createPlanet;
     this.draw = drawPlanet;
+    if(planetNum==6){
+        this.hasRings = true;
+    } else {
+        this.hasRings = false;
+    }
 }
 
 function createPlanet(){
@@ -412,15 +433,21 @@ function createPlanet(){
 }
 
 function drawPlanet(){
-    gl.uniform1f( gl.getUniformLocation(program, "isSun"), this.isSun );
+    drawElement(this.vertices, this.texCords, this.texture, this.normals, this.isSun);
+    if(this.hasRings){
+        
+    }
+}
+
+var drawElement = function(vertices, texCords, texture, normals, isSun){
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(this.normals));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(normals));
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(this.vertices));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(this.texCords));     
-    gl.bindTexture (gl.TEXTURE_2D, this.texture);
-    gl.drawArrays( gl.TRIANGLES, 0, this.vertices.length);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));     
+    gl.bindTexture (gl.TEXTURE_2D, texture);
+    gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
 }
 
 function initializeThetas() {
