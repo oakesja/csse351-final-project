@@ -259,30 +259,6 @@ var render = function() {
     // gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundTexCords));     
     // gl.bindTexture (gl.TEXTURE_2D, backgroundTexture);
     // gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
-    var vertices = [];
-    var texCords = [];
-    var normals = [];
-
-    var insideRad = .2;
-    var outsideRad = .6;
-    var steps = 50;
-    var deltaTheta = Math.PI * 2 / steps;
-
-    for(var i= 0; i<steps; i++){
-      var angle1 = deltaTheta * i;
-      var angle2 = deltaTheta * (i+1);
-      var bottom1 = vec4(insideRad * Math.cos(angle1), insideRad * Math.sin(angle1), Math.cos(angle1), 1);
-      var top1 = vec4(outsideRad * Math.cos(angle1), outsideRad * Math.sin(angle1), Math.cos(angle1), 1);
-      var bottom2 = vec4(insideRad * Math.cos(angle2), insideRad * Math.sin(angle2), Math.cos(angle2), 1);
-      var top2 = vec4(outsideRad * Math.cos(angle2), outsideRad * Math.sin(angle2), Math.cos(angle2), 1);
-      vertices.push(bottom1, top1, bottom2);
-      normals.push(bottom1, top1, bottom2);
-      texCords.push(vec2(1,1), vec2(0, 1), vec2(1, 0));
-      vertices.push(top1, top2, bottom2);
-      normals.push(top1, top2, bottom2);
-      texCords.push(vec2(0,1), vec2(0, 0), vec2(1, 0));
-    }
-
 
     mv = mat4  (scale, 0, 0, cameraX,
                 0, scale, 0, cameraY,
@@ -294,7 +270,7 @@ var render = function() {
     var lightPosition = vec4(0, 0, 0, 1.0);
     gl.uniform4fv( gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition) );
 
-    drawElement(vertices, texCords, saturnRingTexture, normals);
+    // drawElement(vertices, texCords, saturnRingTexture, normals);
     planets = [];
 
     planets.push(new Planet(0, .1, textures[0]));
@@ -358,7 +334,7 @@ function Planet(planetNum, radius, texture){
     this.texCords = [];
     this.create = createPlanet;
     this.draw = drawPlanet;
-    if(planetNum==6){
+    if(planetNum==3){
         this.hasRings = true;
     } else {
         this.hasRings = false;
@@ -434,8 +410,31 @@ function createPlanet(){
 
 function drawPlanet(){
     drawElement(this.vertices, this.texCords, this.texture, this.normals, this.isSun);
+    var vertices = [];
+    var texCords = [];
+    var normals = [];
+
+    var insideRad = .05;
+    var outsideRad = .1;
+    var steps = 50;
+    var deltaTheta = Math.PI * 2 / steps;
+
     if(this.hasRings){
-        
+        for(var i= 0; i<steps; i++){
+          var angle1 = deltaTheta * i;
+          var angle2 = deltaTheta * (i+1);
+          var bottom1 = vec4(insideRad * Math.cos(angle1) + this.centerX, insideRad * Math.sin(angle1) + this.centerY, Math.sin(angle1), 1);
+          var top1 = vec4(outsideRad * Math.cos(angle1) + this.centerX, outsideRad * Math.sin(angle1) + this.centerY, Math.sin(angle1) , 1);
+          var bottom2 = vec4(insideRad * Math.cos(angle2) + this.centerX, insideRad * Math.sin(angle2) + this.centerY, Math.sin(angle2) , 1);
+          var top2 = vec4(outsideRad * Math.cos(angle2) + this.centerX, outsideRad * Math.sin(angle2) + this.centerY, Math.sin(angle2), 1);
+          vertices.push(bottom1, top1, bottom2);
+          normals.push(bottom1, top1, bottom2);
+          texCords.push(vec2(1,1), vec2(0, 1), vec2(1, 0));
+          vertices.push(top1, top2, bottom2);
+          normals.push(top1, top2, bottom2);
+          texCords.push(vec2(0,1), vec2(0, 0), vec2(1, 0));
+        }
+        drawElement(vertices, texCords, saturnRingTexture, normals, false);
     }
 }
 
