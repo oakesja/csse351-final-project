@@ -26,13 +26,18 @@ var EXP_RAND = .003;
 var EXP_TIME = 10;
 var EXP_AND_AST = false;
 var DS_RAD = .2;
-var DS_X = -1;
-var DS_Y = -1;
+var DS_X = -1.2;
+var DS_Y = -1.2;
 var DS_Z = -.09;
+var FIRING = false;
+var FIRED = false;
 
 var deathStar;
 var deathStarTick = 0;
-var deathStarTickSize = 0.01;
+var deathStarTickSize = 0.008;
+var deathStarMaxTick = .5;
+var deathStarCooldown = 1000; // ms
+var deathStarFireTime; 
 
 var sunRad = 54.62;
 var merRad = .191;
@@ -61,9 +66,9 @@ var specularColor = vec4(1.0, 1, 1.0, 1.0);
 var diffuseColor = vec4(.3, .3, .3, 1.0);
 
 var program;
-var scale = 1;
-var cameraX = 0;
-var cameraY = 0;
+var SCALE = 1;
+var CAMERA_X = 0;
+var CAMERA_Y = 0;
 
 
 
@@ -211,9 +216,9 @@ var render = function() {
     gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
     gl.drawArrays(gl.TRIANGLES, 0, backgroundPoints.length);
 
-    mv = mat4(scale, 0, 0, cameraX,
-        0, scale, 0, cameraY,
-        0, 0, scale, 0,
+    mv = mat4(SCALE, 0, 0, CAMERA_X,
+        0, SCALE, 0, CAMERA_Y,
+        0, 0, SCALE, 0,
         0, 0, 0, 1);
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mv));
@@ -233,12 +238,6 @@ var render = function() {
         planets[i].draw();
     }
     incrementThetas();
-
-    mv2 = mat4(1, 0, 0, deathStarTick,
-        0, 1, 0, deathStarTick,
-        0, 0, 1, deathStarTick,
-        0, 0, 0, 1);
-
 
     if (Math.random() * 100 < ASTEROID_FREQ) {
         asteroids.push(new Asteroid(asteroids.length, aTextures[0]));
@@ -268,48 +267,88 @@ var render = function() {
         }
     }
 
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mult(mv2, mv)));
-    deathStar.draw();
-    deathStarDoTick();
+    // moves death star
+    if(deathStarActive()){
+        mv2 = mat4(1, 0, 0, deathStarTick,
+        0, 1, 0, deathStarTick,
+        0, 0, 1, deathStarTick,
+        0, 0, 0, 1);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mult(mv2, mv)));
+        deathStar.draw();
+        deathStarDoTick();
+    }
 
     requestAnimFrame(render);
 }
 
 var deathStarDoTick = function() {
-    if (deathStarTick < .3) {
+    if(FIRING && deathStarTick >= deathStarMaxTick){
+        FIRING = false;
+        FIRED = true;
+        planets[4].explode();
+        deathStarTick -= deathStarTickSize;
+        deathStarFireTime = new Date();
+    } else if(FIRED && deathStarTick <= 0){
+        deathStarTick = 0;
+        FIRED = false;
+    } else if(deathStarTick >= deathStarMaxTick){
+        FIRED = false;
+    } else if (FIRING) {
         deathStarTick += deathStarTickSize;
+    } else if (FIRED && hasCooledDown()) {
+        deathStarTick -= deathStarTickSize;
     }
 }
 
+var hasCooledDown = function(){
+    var current = new Date();
+    if(current - deathStarFireTime >= deathStarCooldown){
+        return true;
+    }
+    return false;
+}
+
+var deathStarActive = function(){
+    return FIRED || FIRING;
+}
+
 window.onkeydown = function(e) {
+    if(deathStarActive()){
+        SCALE = 1;
+        CAMERA_X = 0;
+        CAMERA_Y = 0;
+        return;
+    }
     var step = .1;
     switch (e.keyCode) {
         case 33:
-            scale += step;
+            SCALE += step;
             render();
             break;
         case 34:
-            scale -= step;
+            SCALE -= step;
             render();
             break;
         case 37:
-            cameraX -= step;
+            CAMERA_X -= step;
             render();
             break;
         case 38:
-            cameraY += step;
+            CAMERA_Y += step;
             render();
             break;
         case 39:
-            cameraX += step;
+            CAMERA_X += step;
             render();
             break;
         case 40:
-            cameraY -= step;
+            CAMERA_Y -= step;
             render();
             break;
         case 32:
-            planets[4].explode();
+            FIRING = true;
+            break;
     }
 }
 
