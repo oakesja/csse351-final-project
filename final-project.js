@@ -1,16 +1,20 @@
 var canvas;
 var backgroundTexture;
-var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture; 
+var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture, asteroidTexture; 
 
-var NUM_PLANETS = 9;
-var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769];
+var ASTEROID_FREQ = 10;
+var ASTEROID_RAD = .02;
+var ASTEROID_SIDES = false;
+var ASTEROID_BACK = true;
+var NUM_PLANETS = 10;
+var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769, .5]; // last value to test for asteroid, remove in final
 var ECCENTRICITIES = [0, 0.2056, 0.0068, 0.0167, 0.0934, 0.0484, 0.0542, 0.0472, 0.0086];
 var RADII = [ 1.62, .191, .475, 1, .265, 0.61, 0.57, 0.84, 0.78 ];
-var MIN_DISTANCES_FROM_SUN = [0.0, 460.0, 1075.0, 1471.0, 1667.0, 1809.0, 13480.0, 27390.0, 44560.0];
-var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 15030.0, 30030.0, 45460.0];
+var MIN_DISTANCES_FROM_SUN = [0.0, 460.0, 1075.0, 1471.0, 1667.0, 1809.0, 13480.0, 27390.0, 44560.0, 1500.0]; // last values to test for asteroid, remove in final
+var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 15030.0, 30030.0, 45460.0, 2000.0];
 var SCALE_FACTOR_DISTANCE = 0.0003;
 var SCALE_FACTOR_RADIUS = 0.1;
-var ROTATION_SPEED = 0.25; //increase or decrease to make planets move faster or slower
+var ROTATION_SPEED = 0.04; //increase or decrease to make planets move faster or slower
 
 var sunRad = 54.62;
 var merRad = .191;
@@ -24,7 +28,9 @@ var nepRad = 1.78;
 var pluRad = .0892;
 
 var planets = [];
+var asteroids = [];
 var textures = [];
+var aTextures = [];
 var thetas = [];
 
 var vBuffer, tBuffer, nBuffer;
@@ -69,6 +75,9 @@ window.onload = function init() {
     initializeBuffers(program);
     initializeTextures(program);
     initializeThetas();
+
+    asteroids.push(new Asteroid(0, aTextures[0]));
+    asteroids[0].create();
 
     render();
 }
@@ -150,8 +159,9 @@ var initializeTextures = function(program){
     setupTexture(program, neptuneTexture, "texture_neptune.gif"); 
     textures.push(neptuneTexture);
 	
-	asteroid1Texture = gl.createTexture();
-    setupTexture(program, asteroid1Texture, "texture_asteroid.gif"); 
+	asteroidTexture = gl.createTexture();
+    setupTexture(program, asteroidTexture, "texture_asteroid.gif"); 
+    aTextures.push(asteroidTexture);
 
 }
 
@@ -165,83 +175,6 @@ var setupTexture = function(program, texture, src){
         gl.bindTexture (gl.TEXTURE_2D, null);
     }
     texture.image.src = src;
-}
-
-var createAsteroid = function(centerX, centerY, centerZ, radius, vertArray, texArray, normArray){
-    var latitudeBands = 10;
-    var longitudeBands = 10;
-    var vertexPositionData = [];
-    var normals = [];
-	
-	var newRadius = radius*Math.random();
-    
-    for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
-        var theta = latNumber * Math.PI / latitudeBands;
-        var sinTheta = Math.sin(theta);
-        var cosTheta = Math.cos(theta);
-        var tempVertices = [];
-        var tempNormals = [];
-        for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
-            var phi = longNumber * 2 * Math.PI / longitudeBands;
-            var sinPhi = Math.sin(phi);
-            var cosPhi = Math.cos(phi);
-
-            var x = cosPhi * sinTheta;
-            var y = cosTheta;
-            var z = sinPhi * sinTheta;
-			
-			var temp = Math.random()*10;
-			
-			if(temp<2){
-				newRadius+=.02;
-			}
-			
-			if(temp>8){
-				newRadius-=.02;
-			}
-			
-            tempVertices.push(vec4((newRadius * x * canvas.height / canvas.width) + centerX, newRadius * y + centerY, newRadius * z + centerZ, 1));
-            tempNormals.push(vec4((x * canvas.height / canvas.width) + centerX, y + centerY, z + centerZ, 1));
-        }
-        vertexPositionData.push(tempVertices);
-        normals.push(tempNormals);
-    }
-
-    for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
-        for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
-            nextLat = latNumber == latitudeBands ? 0 : latNumber + 1;
-            nextLong = longNumber == latitudeBands ? 0 : longNumber + 1;
-
-            var texUpperLeft = vec2(longNumber / longitudeBands, latNumber / latitudeBands);
-            var texLowerLeft = vec2(longNumber / longitudeBands, nextLat / latitudeBands);
-            var texUpperRight = vec2(nextLong / longitudeBands, latNumber / latitudeBands);
-            var texLowerRight = vec2(nextLong / longitudeBands, nextLat / latitudeBands);
-
-            vertArray.push(
-                vertexPositionData[latNumber][longNumber],
-                vertexPositionData[nextLat][longNumber],
-                vertexPositionData[latNumber][nextLong]
-            );
-            normArray.push(
-                normals[latNumber][longNumber],
-                normals[nextLat][longNumber],
-                normals[latNumber][nextLong]
-            );
-            texArray.push(texUpperLeft, texLowerLeft, texUpperRight);
-            vertArray.push(
-                vertexPositionData[latNumber][nextLong],
-                vertexPositionData[nextLat][longNumber],
-                vertexPositionData[nextLat][nextLong]
-            );
-            normArray.push(
-                normals[latNumber][nextLong],
-                normals[nextLat][longNumber],
-                normals[nextLat][nextLong]
-            );
-            texArray.push(texUpperRight, texLowerLeft, texLowerRight);
-            vertices+=6;
-        }
-    }
 }
 
 var render = function() {
@@ -267,16 +200,32 @@ var render = function() {
     var lightPosition = vec4(0, 0, 0, 1.0);
     gl.uniform4fv( gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition) );
 
+
     planets = [];
 
     planets.push(new Planet(0, .1, textures[0]));
     planets[0].create();
     planets[0].draw();
 
-    for(var i=1; i<NUM_PLANETS; i++){
+
+
+    for(var i=1; i<NUM_PLANETS-1; i++){
         planets.push(new Planet(i, .05, textures[i]));
         planets[i].create();
         planets[i].draw();
+    }
+
+    if(Math.random()*100<ASTEROID_FREQ){
+        asteroids.push(new Asteroid(asteroids.length, aTextures[0]));
+        asteroids[asteroids.length-1].create();
+    }
+
+    for(var i=0; i<asteroids.length; i++){
+        asteroids[i].update();
+        asteroids[i].draw();
+        if(asteroids[i].centerY>1.1 || asteroids[i].centerX>1.1  || asteroids[i].centerZ>1.1){
+            asteroids.splice(i, 1);
+        }
     }
 
     incrementThetas();
@@ -322,6 +271,8 @@ window.onkeydown = function(e){
             cameraY -= step;
             render();
             break;
+        case 32:
+            planets[1].explode();
     }
 }
 
@@ -332,6 +283,7 @@ function Planet(planetNum, radius, texture){
     this.centerZ = coords[2];
     this.radius = radius;
     this.texture = texture
+	this.isAsteroid = false;
     if (planetNum==0){
         this.isSun = 1;
     } else {
@@ -340,15 +292,108 @@ function Planet(planetNum, radius, texture){
     this.vertices = [];
     this.normals = [];
     this.texCords = [];
-    this.create = createPlanet;
+    this.create = createSpaceObject;
     this.draw = drawPlanet;
+    this.explode = planetExplode;
 }
 
-function createPlanet(){
-    var latitudeBands = 20;
-    var longitudeBands = 20;
+function Asteroid(astNum, texture){
+    this.pos = astNum;
+    var coords = getAsteroidCoor();
+    this.centerX = coords[0];
+    this.centerY = coords[1];
+    this.centerZ = coords[2];
+    if(ASTEROID_SIDES){
+        var velocity = Math.random()/20;
+        this.velocityX = velocity;          // 1 + velocity
+        this.velocityY = velocity;
+        this.velocityZ = 0;
+    }
+    if(ASTEROID_BACK){
+        this.velocityX = 1+.04;
+        this.velocityY = 1+.04;
+        this.velocityZ = 1+.05;
+    }
+
+    this.texture = texture;
+    this.isAsteroid = true;
+    this.isSun=false;
+    this.radius = ASTEROID_RAD;
+    this.vertices = [];
+    this.normals = [];
+    this.texCords = [];
+    this.create = createSpaceObject;
+    this.draw = drawPlanet;
+    this.update = asteroidUpdate;
+}
+
+function getAsteroidCoor(){
+    if(ASTEROID_SIDES){
+        if(Math.random()*10>5){
+            x = -1.3-Math.random()/2;
+            y = 0;
+        } else{
+            x = 0;
+            y = -1.3-Math.random()/2;
+        }
+       
+        z = 0;
+    }
+
+    if(ASTEROID_BACK){
+        x = -.1+Math.random()/5;
+        y = -.1+Math.random()/5;
+        z = 0;
+    }
+
+    return [x, y, z];
+}
+
+function asteroidUpdate(){
+    if(ASTEROID_SIDES){
+        this.centerX+=this.velocityX;
+        this.centerY+=this.velocityY;
+        // this.centerZ+=this.velocityZ;
+        for (var i =  0; i < this.vertices.length; i++) {
+            this.vertices[i] = [this.vertices[i][0]+this.velocityX, this.vertices[i][1]+this.velocityY, this.vertices[i][2]+this.velocityZ, this.vertices[i][3]];
+        };
+    } 
+    if(ASTEROID_BACK){
+        for (var i =  0; i < this.vertices.length; i++) {
+            this.vertices[i] = [this.vertices[i][0]*this.velocityX, this.vertices[i][1]*this.velocityY, this.vertices[i][2]*this.velocityZ, this.vertices[i][3]];
+        };
+    }
+}
+
+function multiplyMatrices(m1, m2) {
+    var result = [];
+    for (var i = 0; i < m1.length; i++) {
+        result[i] = [];
+        for (var j = 0; j < m2[0].length; j++) {
+            var sum = 0;
+            for (var k = 0; k < m1[0].length; k++) {
+                sum += m1[i][k] * m2[k][j];
+            }
+            result[i][j] = sum;
+        }
+    }
+    return result;
+}
+
+function createSpaceObject(){
+    if(this.isAsteroid){
+        var latitudeBands = 8;
+        var longitudeBands = 8;
+    }
+    else{
+        var latitudeBands = 20;
+        var longitudeBands = 20;
+    }
     var vertexPositionData = [];
     var normals = [];
+	
+	var newRadius = this.radius*Math.random();
+
     
     for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
         var theta = latNumber * Math.PI / latitudeBands;
@@ -364,12 +409,28 @@ function createPlanet(){
             var x = cosPhi * sinTheta;
             var y = cosTheta;
             var z = sinPhi * sinTheta;
-            tempVertices.push(vec4((this.radius * x * canvas.height / canvas.width) + this.centerX, 
-                this.radius * y + this.centerY, 
-                this.radius * z + this.centerZ, 1));
-            tempNormals.push(vec4((x * canvas.height / canvas.width) + this.centerX, 
-                y + this.centerY, 
-                z + this.centerZ, 1));
+			
+			
+            if(this.isAsteroid){
+                var temp = Math.random()*10;
+    		
+    			if(temp<2){
+    				newRadius+=.002;
+    			}
+    			
+    			if(temp>8){
+    				newRadius-=.002;
+    			}
+    			
+    			this.radius = newRadius;
+            }
+			
+			tempVertices.push(vec4((this.radius * x * canvas.height / canvas.width) + this.centerX, 
+				this.radius * y + this.centerY, 
+				this.radius * z + this.centerZ, 1));
+			tempNormals.push(vec4((x * canvas.height / canvas.width) + this.centerX, 
+				y + this.centerY, 
+				z + this.centerZ, 1));
         }
         vertexPositionData.push(tempVertices);
         normals.push(tempNormals);
@@ -460,6 +521,7 @@ function createNewVertices(){
     createSphere(6, RADII[6]*SCALE_FACTOR_RADIUS, saturnVertices, saturnTexCords);
     createSphere(7, RADII[7]*SCALE_FACTOR_RADIUS, uranusVertices, uranusTexCords);
     createSphere(8, RADII[8]*SCALE_FACTOR_RADIUS, neptuneVertices, neptuneTexCords);
+    createSphere(9, RADII[9]*SCALE_FACTOR_RADIUS, asteroidVertices, asteroidTexCords);
 
 
 }
@@ -484,5 +546,6 @@ function clearArrays() {
     uranusVertices = [];
     neptuneTexCords = [];
     neptuneVertices = [];
-
+    asteroidTexCords = [];
+    asteroidVertices = [];
 }
