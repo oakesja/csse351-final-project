@@ -1,7 +1,7 @@
 var canvas;
 var backgroundTexture;
 var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture; 
-var saturnRingTexture;
+var saturnRingTexture, deathStarTexture;
 
 var NUM_PLANETS = 9;
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769];
@@ -46,6 +46,10 @@ var scale = 1;
 var cameraX = 0;
 var cameraY = 0;
 
+var deathStar;
+var deathStarTick = 0;
+var deathStarTickSize = 0.01;
+
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
     canvas.height = window.innerHeight -15;
@@ -66,10 +70,13 @@ window.onload = function init() {
     // ambientProduct = mult(lightAmbient, materialAmbient);
     // diffuseProduct = mult(lightDiffuse, materialDiffuse);
     // specularProduct = mult(lightSpecular, materialSpecular);
-    
+
     initializeBuffers(program);
     initializeTextures(program);
     initializeThetas();
+
+    deathStar = new DeathStar();
+    deathStar.create();
 
     render();
 }
@@ -155,8 +162,10 @@ var initializeTextures = function(program){
     textures.push(neptuneTexture);
 	
 	asteroid1Texture = gl.createTexture();
-    setupTexture(program, asteroid1Texture, "texture_asteroid.gif"); 
+    setupTexture(program, asteroid1Texture, "texture_asteroid.gif");
 
+    deathStarTexture = gl.createTexture();
+    setupTexture(program, deathStarTexture, "texture_death_star.gif");  
 }
 
 var setupTexture = function(program, texture, src){
@@ -250,15 +259,15 @@ var createAsteroid = function(centerX, centerY, centerZ, radius, vertArray, texA
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
-    // var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
+    var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1),  vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
+    var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
     
-    // gl.uniform1f( gl.getUniformLocation(program, "isBackground"), true );
-    // gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundPoints));
-    // gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
-    // gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundTexCords));     
-    // gl.bindTexture (gl.TEXTURE_2D, backgroundTexture);
-    // gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
+    gl.uniform1f( gl.getUniformLocation(program, "isBackground"), true );
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundPoints));
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundTexCords));     
+    gl.bindTexture (gl.TEXTURE_2D, backgroundTexture);
+    gl.drawArrays( gl.TRIANGLES, 0, backgroundPoints.length);
 
     mv = mat4  (scale, 0, 0, cameraX,
                 0, scale, 0, cameraY,
@@ -284,7 +293,23 @@ var render = function() {
     }
 
     // incrementThetas();
+
+    mv2 = mat4  (1, 0, 0, deathStarTick,
+                0, 1, 0, deathStarTick,
+                0, 0, 1, deathStarTick,
+                0, 0, 0, 1);
+
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mult(mv2, mv)));
+
+    deathStar.draw();
+    deathStarDoTick();
     requestAnimFrame(render);
+}
+
+var deathStarDoTick = function(){
+    if(deathStarTick < .3){
+        deathStarTick += deathStarTickSize;
+    }
 }
 
 window.onkeydown = function(e){
@@ -339,6 +364,20 @@ function Planet(planetNum, radius, texture){
     } else {
         this.hasRings = false;
     }
+}
+
+function DeathStar(texture){
+    this.centerX = -.9;
+    this.centerY = -.9;
+    this.centerZ = -.8;
+    this.radius = 0.2;
+    this.texture = deathStarTexture;
+    this.isSun = false;
+    this.vertices = [];
+    this.normals = [];
+    this.texCords = [];
+    this.create = createPlanet;
+    this.draw = drawPlanet;
 }
 
 function createPlanet(){
