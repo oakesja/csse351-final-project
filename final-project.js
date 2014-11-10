@@ -235,10 +235,12 @@ var render = function() {
     }
 
     for(var i=0; i<asteroids.length; i++){
-        asteroids[i].update();
-        asteroids[i].draw();
-        if(asteroids[i].centerY>1.1 || asteroids[i].centerX>1.1  || asteroids[i].centerZ>1.1){
+        if(asteroids[i].centerY>1.1 || asteroids[i].centerX>1.1  || asteroids[i].centerZ>1.1 || asteroids[i].time>10){
             asteroids.splice(i, 1);
+        }
+        else{
+            asteroids[i].update();
+            asteroids[i].draw();
         }
     }
 
@@ -358,6 +360,7 @@ function ExplosionAsteroid(texture, x, y, z){
     this.velocityX = -.03+Math.random()*.06;
     this.velocityY = -.03+Math.random()*.06;         // +1 to velocities
     this.velocityZ = .05;
+    this.time = 0;
 
     this.texture = texture;
     this.isAsteroid = true;
@@ -404,6 +407,7 @@ function Asteroid(astNum, texture){
     this.draw = drawPlanet;
     this.update = asteroidUpdate;
     this.fromExp = false;
+    this.time = 0;
 }
 
 function getAsteroidCoor(){
@@ -438,6 +442,7 @@ function asteroidUpdate(){
         };
     } 
     if(this.fromExp){
+        this.time+=1;
         for (var i =  0; i < this.vertices.length; i++) {
             this.vertices[i] = [this.vertices[i][0]+this.velocityX, this.vertices[i][1]+this.velocityY, this.vertices[i][2]+this.velocityZ, this.vertices[i][3]];
         }
