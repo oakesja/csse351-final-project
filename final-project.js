@@ -25,6 +25,14 @@ var EXP_RAD = .05;
 var EXP_RAND = .003;
 var EXP_TIME = 10;
 var EXP_AND_AST = false;
+var DS_RAD = .2;
+var DS_X = -1;
+var DS_Y = -1;
+var DS_Z = -.09;
+
+var deathStar;
+var deathStarTick = 0;
+var deathStarTickSize = 0.01;
 
 var sunRad = 54.62;
 var merRad = .191;
@@ -57,9 +65,7 @@ var scale = 1;
 var cameraX = 0;
 var cameraY = 0;
 
-var deathStar;
-var deathStarTick = 0;
-var deathStarTickSize = 0.01;
+
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" );
@@ -334,17 +340,17 @@ function Planet(planetNum, radius, texture){
 }
 
 function DeathStar(texture){
-    this.centerX = -1;
-    this.centerY = -1;
-    this.centerZ = -.8;
-    this.radius = 0.2;
+    this.centerX = DS_X;
+    this.centerY = DS_Y;
+    this.centerZ = DS_Z;
+    this.radius = DS_RAD;
     this.texture = deathStarTexture;
-    this.isSun = false;
     this.vertices = [];
     this.normals = [];
     this.texCords = [];
     this.create = createSpaceObject;
     this.draw = drawPlanet;
+    this.isSun = false;
     this.isAsteroid = false;
     this.isExplostion = false;
 }
@@ -482,15 +488,13 @@ function createSpaceObject(){
         var latitudeBands = 8;
         var longitudeBands = 8;
     }
+    else if (this.isExplostion) {
+        var latitudeBands = 12;
+        var longitudeBands = 12;
+    }
     else{
-        if(this.isExplostion){
-            var latitudeBands = 12;
-            var longitudeBands = 12;
-        }
-        else{
-            var latitudeBands = 20;
-            var longitudeBands = 20;
-        }
+        var latitudeBands = 20;
+        var longitudeBands = 20;
     }
     var vertexPositionData = [];
     var normals = [];
@@ -503,7 +507,6 @@ function createSpaceObject(){
         var newRadius = this.radius;
     }
 
-    
     for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
         var theta = latNumber * Math.PI / latitudeBands;
         var sinTheta = Math.sin(theta);
@@ -657,46 +660,4 @@ function getSphereCenter(planetNum) {
     var z = MIN_DISTANCES_FROM_SUN[planetNum]*SCALE_FACTOR_DISTANCE*Math.sin(thetas[planetNum]);
     var y = Math.sqrt(x*x + z*z)*Math.sin(INCLINATIONS[planetNum]);
     return [x, y, z];
-}
-
-function createNewVertices(){
-
-    clearArrays();
-
-    createSphere(0, RADII[0]*SCALE_FACTOR_RADIUS, sunVertices, sunTexCords);
-    createSphere(1, RADII[1]*SCALE_FACTOR_RADIUS, mercuryVertices, mercuryTexCords);
-    createSphere(2, RADII[2]*SCALE_FACTOR_RADIUS, venusVertices, venusTexCords);
-    createSphere(3, RADII[3]*SCALE_FACTOR_RADIUS, earthVertices, earthTexCords);
-    createSphere(4, RADII[4]*SCALE_FACTOR_RADIUS, marsVertices, marsTexCords);
-    createSphere(5, RADII[5]*SCALE_FACTOR_RADIUS, jupiterVertices, jupiterTexCords);
-    createSphere(6, RADII[6]*SCALE_FACTOR_RADIUS, saturnVertices, saturnTexCords);
-    createSphere(7, RADII[7]*SCALE_FACTOR_RADIUS, uranusVertices, uranusTexCords);
-    createSphere(8, RADII[8]*SCALE_FACTOR_RADIUS, neptuneVertices, neptuneTexCords);
-    createSphere(9, RADII[9]*SCALE_FACTOR_RADIUS, asteroidVertices, asteroidTexCords);
-
-
-}
-
-function clearArrays() {
-
-    sunTexCords = [];
-    sunVertices = [];
-    mercuryTexCords = [];
-    mercuryVertices = [];
-    venusTexCords = [];
-    venusVertices = [];
-    earthTexCords = [];
-    earthVertices = [];
-    marsTexCords = [];
-    marsVertices = [];
-    jupiterTexCords = [];
-    jupiterVertices = [];
-    saturnTexCords = [];
-    saturnVertices = [];
-    uranusTexCords = [];
-    uranusVertices = [];
-    neptuneTexCords = [];
-    neptuneVertices = [];
-    asteroidTexCords = [];
-    asteroidVertices = [];
 }
