@@ -650,10 +650,10 @@ function drawPlanet() {
         for (var i = 0; i < steps; i++) {
             var angle1 = deltaTheta * i;
             var angle2 = deltaTheta * (i + 1);
-            var bottom1 = vec4(insideRad * Math.cos(angle1) + this.centerX, insideRad * Math.sin(angle1) + this.centerY, Math.sin(angle1), 1);
-            var top1 = vec4(outsideRad * Math.cos(angle1) + this.centerX, outsideRad * Math.sin(angle1) + this.centerY, Math.sin(angle1), 1);
-            var bottom2 = vec4(insideRad * Math.cos(angle2) + this.centerX, insideRad * Math.sin(angle2) + this.centerY, Math.sin(angle2), 1);
-            var top2 = vec4(outsideRad * Math.cos(angle2) + this.centerX, outsideRad * Math.sin(angle2) + this.centerY, Math.sin(angle2), 1);
+            var bottom1 = vec4(insideRad * Math.cos(angle1) + this.centerX, insideRad * Math.sin(angle1) + this.centerY, insideRad * Math.cos(angle1) + this.centerZ, 1);
+            var top1 = vec4(outsideRad * Math.cos(angle1) + this.centerX, outsideRad * Math.sin(angle1) + this.centerY, outsideRad * Math.cos(angle1) + this.centerZ, 1);
+            var bottom2 = vec4(insideRad * Math.cos(angle2) + this.centerX, insideRad * Math.sin(angle2) + this.centerY, insideRad * Math.cos(angle2) + this.centerZ, 1);
+            var top2 = vec4(outsideRad * Math.cos(angle2) + this.centerX, outsideRad * Math.sin(angle2) + this.centerY, outsideRad * Math.cos(angle2) + this.centerZ, 1);
             vertices.push(bottom1, top1, bottom2);
             normals.push(bottom1, top1, bottom2);
             texCords.push(vec2(1, 1), vec2(0, 1), vec2(1, 0));
