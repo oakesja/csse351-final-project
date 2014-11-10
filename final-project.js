@@ -4,8 +4,8 @@ var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiter
 
 var ASTEROID_FREQ = 10;
 var ASTEROID_RAD = .02;
-var ASTEROID_SIDES = false;
-var ASTEROID_BACK = true;
+var ASTEROID_SIDES = true;
+var ASTEROID_BACK = false;
 var NUM_PLANETS = 10;
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769, .5]; // last value to test for asteroid, remove in final
 var ECCENTRICITIES = [0, 0.2056, 0.0068, 0.0167, 0.0934, 0.0484, 0.0542, 0.0472, 0.0086];
@@ -151,6 +151,9 @@ var initializeTextures = function(program){
     setupTexture(program, saturnTexture, "texture_saturn.gif"); 
     textures.push(saturnTexture);
 
+    saturnRingTexture = gl.createTexture();
+    setupTexture(program, saturnRingTexture, "texture_saturn_ring.gif"); 
+
     uranusTexture = gl.createTexture();
     setupTexture(program, uranusTexture, "texture_uranus.gif"); 
     textures.push(uranusTexture);
@@ -189,7 +192,6 @@ var render = function() {
     // gl.bindTexture (gl.TEXTURE_2D, backgroundTexture);
     // gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
 
-
     mv = mat4  (scale, 0, 0, cameraX,
                 0, scale, 0, cameraY,
                 0, 0, scale, 0,
@@ -215,6 +217,7 @@ var render = function() {
         planets[i].draw();
     }
 
+
     if(Math.random()*100<ASTEROID_FREQ){
         asteroids.push(new Asteroid(asteroids.length, aTextures[0]));
         asteroids[asteroids.length-1].create();
@@ -230,18 +233,6 @@ var render = function() {
 
     incrementThetas();
     requestAnimFrame(render);
-}
-
-
-var drawElement = function(vertices, texCords, texture, normals){
-    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(normals));
-    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
-    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));     
-    gl.bindTexture (gl.TEXTURE_2D, texture);
-    gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
 }
 
 window.onkeydown = function(e){
@@ -295,6 +286,15 @@ function Planet(planetNum, radius, texture){
     this.create = createSpaceObject;
     this.draw = drawPlanet;
     this.explode = planetExplode;
+    if(planetNum==3){
+        this.hasRings = true;
+    } else {
+        this.hasRings = false;
+    }
+}
+
+function planetExplode(){
+
 }
 
 function Asteroid(astNum, texture){
@@ -305,13 +305,13 @@ function Asteroid(astNum, texture){
     this.centerZ = coords[2];
     if(ASTEROID_SIDES){
         var velocity = Math.random()/20;
-        this.velocityX = velocity;          // 1 + velocity
+        this.velocityX = velocity;
         this.velocityY = velocity;
         this.velocityZ = 0;
     }
     if(ASTEROID_BACK){
         this.velocityX = 1+.04;
-        this.velocityY = 1+.04;
+        this.velocityY = 1+.04;         // +1 to velocities
         this.velocityZ = 1+.05;
     }
 
@@ -361,23 +361,8 @@ function asteroidUpdate(){
     if(ASTEROID_BACK){
         for (var i =  0; i < this.vertices.length; i++) {
             this.vertices[i] = [this.vertices[i][0]*this.velocityX, this.vertices[i][1]*this.velocityY, this.vertices[i][2]*this.velocityZ, this.vertices[i][3]];
-        };
-    }
-}
-
-function multiplyMatrices(m1, m2) {
-    var result = [];
-    for (var i = 0; i < m1.length; i++) {
-        result[i] = [];
-        for (var j = 0; j < m2[0].length; j++) {
-            var sum = 0;
-            for (var k = 0; k < m1[0].length; k++) {
-                sum += m1[i][k] * m2[k][j];
-            }
-            result[i][j] = sum;
         }
     }
-    return result;
 }
 
 function createSpaceObject(){
@@ -473,15 +458,44 @@ function createSpaceObject(){
 }
 
 function drawPlanet(){
-    gl.uniform1f( gl.getUniformLocation(program, "isSun"), this.isSun );
+    drawElement(this.vertices, this.texCords, this.texture, this.normals, this.isSun);
+    var vertices = [];
+    var texCords = [];
+    var normals = [];
+
+    var insideRad = .05;
+    var outsideRad = .1;
+    var steps = 50;
+    var deltaTheta = Math.PI * 2 / steps;
+
+    if(this.hasRings){
+        for(var i= 0; i<steps; i++){
+          var angle1 = deltaTheta * i;
+          var angle2 = deltaTheta * (i+1);
+          var bottom1 = vec4(insideRad * Math.cos(angle1) + this.centerX, insideRad * Math.sin(angle1) + this.centerY, Math.sin(angle1), 1);
+          var top1 = vec4(outsideRad * Math.cos(angle1) + this.centerX, outsideRad * Math.sin(angle1) + this.centerY, Math.sin(angle1) , 1);
+          var bottom2 = vec4(insideRad * Math.cos(angle2) + this.centerX, insideRad * Math.sin(angle2) + this.centerY, Math.sin(angle2) , 1);
+          var top2 = vec4(outsideRad * Math.cos(angle2) + this.centerX, outsideRad * Math.sin(angle2) + this.centerY, Math.sin(angle2), 1);
+          vertices.push(bottom1, top1, bottom2);
+          normals.push(bottom1, top1, bottom2);
+          texCords.push(vec2(1,1), vec2(0, 1), vec2(1, 0));
+          vertices.push(top1, top2, bottom2);
+          normals.push(top1, top2, bottom2);
+          texCords.push(vec2(0,1), vec2(0, 0), vec2(1, 0));
+        }
+        drawElement(vertices, texCords, saturnRingTexture, normals, false);
+    }
+}
+
+var drawElement = function(vertices, texCords, texture, normals, isSun){
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(this.normals));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(normals));
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(this.vertices));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(this.texCords));     
-    gl.bindTexture (gl.TEXTURE_2D, this.texture);
-    gl.drawArrays( gl.TRIANGLES, 0, this.vertices.length);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));     
+    gl.bindTexture (gl.TEXTURE_2D, texture);
+    gl.drawArrays( gl.TRIANGLES, 0, vertices.length);
 }
 
 function initializeThetas() {
