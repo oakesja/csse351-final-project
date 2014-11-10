@@ -4,6 +4,7 @@ var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiter
 
 var ASTEROID_FREQ = 10;
 var ASTEROID_RAD = .02;
+var ASTEROID_RAND = .002;
 var ASTEROID_SIDES = true;
 var ASTEROID_BACK = false;
 var NUM_PLANETS = 10;
@@ -15,6 +16,10 @@ var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 15030.
 var SCALE_FACTOR_DISTANCE = 0.0003;
 var SCALE_FACTOR_RADIUS = 0.1;
 var ROTATION_SPEED = 0.04; //increase or decrease to make planets move faster or slower
+var EXP_RAD = .05;
+var EXP_RAND = .003;
+var EXP_TIME = 10;
+var EXP_AND_AST = false;
 
 var sunRad = 54.62;
 var merRad = .191;
@@ -32,6 +37,8 @@ var asteroids = [];
 var textures = [];
 var aTextures = [];
 var thetas = [];
+var explosions = [];
+var explosionTexture;
 
 var vBuffer, tBuffer, nBuffer;
 var maxPoints = 6000 * 12;
@@ -166,6 +173,10 @@ var initializeTextures = function(program){
     setupTexture(program, asteroidTexture, "texture_asteroid.gif"); 
     aTextures.push(asteroidTexture);
 
+    explosionTextureTemp = gl.createTexture();
+    setupTexture(program, explosionTextureTemp, "explosion.gif"); 
+    explosionTexture = explosionTextureTemp;
+
 }
 
 var setupTexture = function(program, texture, src){
@@ -231,6 +242,20 @@ var render = function() {
         }
     }
 
+    for(var i=0; i<explosions.length; i++){
+        explosions[i].update();
+        explosions[i].draw();
+        if(explosions[i].time ==1){
+            for(var j=0; j<10; j++){
+                asteroids.push(new ExplosionAsteroid(explosions[i].planetTexture, explosions[i].centerX, explosions[i].centerY, explosions[i].centerZ));
+                asteroids[asteroids.length-1].create();
+            }
+        }
+        if(explosions[i].time ==EXP_TIME){
+            explosions.splice(i, 1);
+        }
+    }
+
     incrementThetas();
     requestAnimFrame(render);
 }
@@ -263,7 +288,7 @@ window.onkeydown = function(e){
             render();
             break;
         case 32:
-            planets[1].explode();
+            planets[4].explode();
     }
 }
 
@@ -275,6 +300,7 @@ function Planet(planetNum, radius, texture){
     this.radius = radius;
     this.texture = texture
 	this.isAsteroid = false;
+    this.isExplostion = false;
     if (planetNum==0){
         this.isSun = 1;
     } else {
@@ -294,8 +320,59 @@ function Planet(planetNum, radius, texture){
 }
 
 function planetExplode(){
-
+    planets.splice(this.planetNum, 1);
+    explosions.push(new Explosion(explosionTexture, this.texture, this.centerX, this.centerY, this.centerZ));
 }
+
+function Explosion(texture, planetTexture, x, y, z){
+    this.centerX = x;
+    this.centerY = y;
+    this.centerZ = z;
+
+    this.time=0;
+
+    this.texture = texture;
+    this.isAsteroid = false;
+    this.isExplostion = true;
+    this.isSun=false;
+    this.radius = EXP_RAD;
+    this.vertices = [];
+    this.normals = [];
+    this.texCords = [];
+    this.create = createSpaceObject;
+    this.draw = drawPlanet;
+    this.update = explosionUpdate;
+    this.planetTexture = planetTexture;
+}
+
+function explosionUpdate(){
+    this.radius+=(EXP_TIME-this.time)/1000;
+    this.create();
+    this.time+=1;
+}
+
+function ExplosionAsteroid(texture, x, y, z){
+    this.centerX = x;
+    this.centerY = y;
+    this.centerZ = z;
+    this.velocityX = -.03+Math.random()*.06;
+    this.velocityY = -.03+Math.random()*.06;         // +1 to velocities
+    this.velocityZ = .05;
+
+    this.texture = texture;
+    this.isAsteroid = true;
+    this.isExplostion=false;
+    this.isSun=false;
+    this.radius = ASTEROID_RAD;
+    this.vertices = [];
+    this.normals = [];
+    this.texCords = [];
+    this.create = createSpaceObject;
+    this.draw = drawPlanet;
+    this.update = asteroidUpdate;
+    this.fromExp = true;
+}
+
 
 function Asteroid(astNum, texture){
     this.pos = astNum;
@@ -317,6 +394,7 @@ function Asteroid(astNum, texture){
 
     this.texture = texture;
     this.isAsteroid = true;
+    this.isExplostion=false;
     this.isSun=false;
     this.radius = ASTEROID_RAD;
     this.vertices = [];
@@ -325,6 +403,7 @@ function Asteroid(astNum, texture){
     this.create = createSpaceObject;
     this.draw = drawPlanet;
     this.update = asteroidUpdate;
+    this.fromExp = false;
 }
 
 function getAsteroidCoor(){
@@ -350,7 +429,7 @@ function getAsteroidCoor(){
 }
 
 function asteroidUpdate(){
-    if(ASTEROID_SIDES){
+    if(!this.fromExp){
         this.centerX+=this.velocityX;
         this.centerY+=this.velocityY;
         // this.centerZ+=this.velocityZ;
@@ -358,9 +437,9 @@ function asteroidUpdate(){
             this.vertices[i] = [this.vertices[i][0]+this.velocityX, this.vertices[i][1]+this.velocityY, this.vertices[i][2]+this.velocityZ, this.vertices[i][3]];
         };
     } 
-    if(ASTEROID_BACK){
+    if(this.fromExp){
         for (var i =  0; i < this.vertices.length; i++) {
-            this.vertices[i] = [this.vertices[i][0]*this.velocityX, this.vertices[i][1]*this.velocityY, this.vertices[i][2]*this.velocityZ, this.vertices[i][3]];
+            this.vertices[i] = [this.vertices[i][0]+this.velocityX, this.vertices[i][1]+this.velocityY, this.vertices[i][2]+this.velocityZ, this.vertices[i][3]];
         }
     }
 }
@@ -371,13 +450,25 @@ function createSpaceObject(){
         var longitudeBands = 8;
     }
     else{
-        var latitudeBands = 20;
-        var longitudeBands = 20;
+        if(this.isExplostion){
+            var latitudeBands = 12;
+            var longitudeBands = 12;
+        }
+        else{
+            var latitudeBands = 20;
+            var longitudeBands = 20;
+        }
     }
     var vertexPositionData = [];
     var normals = [];
 	
-	var newRadius = this.radius*Math.random();
+    if(this.isAsteroid){
+	   var newRadius = this.radius*Math.random();
+    }
+
+    if(this.isExplostion){
+        var newRadius = this.radius;
+    }
 
     
     for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
@@ -395,16 +486,29 @@ function createSpaceObject(){
             var y = cosTheta;
             var z = sinPhi * sinTheta;
 			
+            if(this.isExplostion){
+                var temp = Math.random()*10;
+            
+                if(temp<2){
+                    newRadius+=EXP_RAND;
+                }
+                
+                if(temp>8){
+                    newRadius-=EXP_RAND;
+                }
+                
+                this.radius = newRadius;
+            }
 			
             if(this.isAsteroid){
                 var temp = Math.random()*10;
     		
     			if(temp<2){
-    				newRadius+=.002;
+    				newRadius+=ASTEROID_RAND;
     			}
     			
     			if(temp>8){
-    				newRadius-=.002;
+    				newRadius-=ASTEROID_RAND;
     			}
     			
     			this.radius = newRadius;
