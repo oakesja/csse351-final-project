@@ -78,7 +78,6 @@ window.onload = function init() {
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
-
     initializeBuffers(program);
     initializeTextures(program);
     initializeThetas();
@@ -123,10 +122,6 @@ var initializeBuffers = function(program){
        "specularColor"),flatten(specularColor) );
     gl.uniform4fv( gl.getUniformLocation(program, 
        "diffuseColor"),flatten(diffuseColor) );
-    // gl.uniform4fv( gl.getUniformLocation(program, 
-    //    "specularProduct"),flatten(specularProduct) );   
-    // gl.uniform1f( gl.getUniformLocation(program, 
-    //    "shininess"),materialShininess );
 }
 
 var initializeTextures = function(program){
@@ -172,7 +167,6 @@ var initializeTextures = function(program){
     setupTexture(program, neptuneTexture, "texture_neptune.gif"); 
     textures.push(neptuneTexture);
 	
-
 	asteroidTexture = gl.createTexture();
     setupTexture(program, asteroidTexture, "texture_asteroid.gif"); 
     aTextures.push(asteroidTexture);
@@ -219,22 +213,18 @@ var render = function() {
     var lightPosition = vec4(0, 0, 0, 1.0);
     gl.uniform4fv( gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition) );
 
-
     planets = [];
 
     planets.push(new Planet(0, .1, textures[0]));
     planets[0].create();
     planets[0].draw();
 
-
-
     for(var i=1; i<NUM_PLANETS-1; i++){
         planets.push(new Planet(i, .05, textures[i]));
         planets[i].create();
         planets[i].draw();
     }
-
-    // incrementThetas();
+    incrementThetas();
 
     mv2 = mat4  (1, 0, 0, deathStarTick,
                 0, 1, 0, deathStarTick,
@@ -357,11 +347,6 @@ function DeathStar(texture){
     this.draw = drawPlanet;
     this.isAsteroid = false;
     this.isExplostion = false;
-}
-
-function createPlanet(){
-    var latitudeBands = 20;
-    var longitudeBands = 20;
 }
 
 function planetExplode(){
