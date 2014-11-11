@@ -1,5 +1,4 @@
 var canvas;
-var backgroundTexture;
 var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture;
 var saturnRingTexture, deathStarTexture;
 
@@ -114,7 +113,7 @@ window.onload = function init() {
             var closestPlanet;
             var distance = 9999999999;
 
-            for(var i = 1; i<planets.length; i++){
+            for(var i = 0; i<planets.length; i++){
                 var d = lineDistance([planets[i].centerX, planets[i].centerY], [x, y]);
                 if(d<distance){
                     distance = d;
@@ -207,9 +206,6 @@ var initializeBuffers = function(program) {
 }
 
 var initializeTextures = function(program) {
-    backgroundTexture = gl.createTexture();
-    setupTexture(program, backgroundTexture, "newStars.gif");
-
     sunTexture = gl.createTexture();
     setupTexture(program, sunTexture, "texture_sun.gif");
     textures.push(sunTexture);
@@ -274,16 +270,7 @@ var setupTexture = function(program, texture, src) {
 }
 
 var render = function() {
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    var backgroundPoints = [vec4(-1, -1, 0, 1), vec4(1, -1, 0, 1), vec4(-1, 1, 0, 1), vec4(1, -1, 0, 1), vec4(1, 1, 0, 1), vec4(-1, 1, 0, 1)];
-    var backgroundTexCords = [vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1), vec2(0, 0)];
-
-    gl.uniform1f(gl.getUniformLocation(program, "isBackground"), true);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundPoints));
-    gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(backgroundTexCords));
-    gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
-    gl.drawArrays(gl.TRIANGLES, 0, backgroundPoints.length);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);;
 
     mv = mat4(SCALE, 0, 0, CAMERA_X,
         0, SCALE, 0, CAMERA_Y,
