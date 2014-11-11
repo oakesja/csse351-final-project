@@ -203,6 +203,7 @@ var initializeBuffers = function(program) {
         "specularColor"), flatten(specularColor));
     gl.uniform4fv(gl.getUniformLocation(program,
         "diffuseColor"), flatten(diffuseColor));
+    gl.uniform1i(gl.getUniformLocation(program, "isLaser"), false);
 }
 
 var initializeTextures = function(program) {
@@ -342,6 +343,9 @@ var deathStarDoTick = function() {
     if(FIRING && deathStarTick >= deathStarMaxTick){
         FIRING = false;
         FIRED = true;
+        var point1 = vec4(deathStar.centerX + deathStarTick, deathStar.centerY + deathStarTick, deathStar.centerZ + deathStarTick, 1);
+        var point2 = vec4(planets[planetToExplode].centerX, planets[planetToExplode].centerY, planets[planetToExplode].centerZ, 1);
+        drawLaser(point1, point2);
         planets[planetToExplode].explode();
         deathStarTick -= deathStarTickSize;
         deathStarFireTime = new Date();
@@ -733,6 +737,15 @@ var drawElement = function(vertices, texCords, texture, normals, isSun) {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.drawArrays(gl.TRIANGLES, 0, vertices.length);
+}
+
+function drawLaser(point1, point2){
+    vertices = [point1, point2];
+    gl.uniform1i(gl.getUniformLocation(program, "isLaser"), true);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
+    gl.drawArrays(gl.LINES, 0, vertices.length);
+    gl.uniform1i(gl.getUniformLocation(program, "isLaser"), false);
 }
 
 function initializeThetas() {

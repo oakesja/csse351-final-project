@@ -10,6 +10,7 @@ varying vec2 fTexCoord;
 varying vec3 lightWeighting;
 uniform vec4 lightPosition;
 uniform bool isSun;
+uniform bool isLaser;
 uniform mat4 modelViewMatrix;
 uniform vec4 ambientColor;
 uniform vec4 specularColor; 
@@ -18,19 +19,23 @@ uniform vec4 diffuseColor;
 void
 main()
 {
-	vec4 pos = modelViewMatrix * vPosition;
-	vec3 light = (modelViewMatrix * lightPosition).xyz;
-	vec3 direction = normalize(light - pos.xyz);
-	if(isSun){
-		float directionalLightWeighting = max(dot(-vNormal.xyz, direction), 0.0);
-		lightWeighting = ambientColor.rgb + specularColor.rgb * directionalLightWeighting;
+	if(isLaser){
+		gl_Position = vPosition;
 	} else {
-		float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
-		lightWeighting = ambientColor.rgb + diffuseColor.rgb + specularColor.rgb * (directionalLightWeighting * 4.0);
+		vec4 pos = modelViewMatrix * vPosition;
+		vec3 light = (modelViewMatrix * lightPosition).xyz;
+		vec3 direction = normalize(light - pos.xyz);
+		if(isSun){
+			float directionalLightWeighting = max(dot(-vNormal.xyz, direction), 0.0);
+			lightWeighting = ambientColor.rgb + specularColor.rgb * directionalLightWeighting;
+		} else {
+			float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
+			lightWeighting = ambientColor.rgb + diffuseColor.rgb + specularColor.rgb * (directionalLightWeighting * 4.0);
+		}
+		
+		fTexCoord = vTexCoord;
+	    gl_Position = pos;
 	}
-	
-	fTexCoord = vTexCoord;
-    gl_Position = pos;
 }
 </script>
 
@@ -40,12 +45,18 @@ precision mediump float;
 varying vec2 fTexCoord;
 varying vec3 lightWeighting;
 uniform sampler2D texMap;
+uniform bool isLaser;
+
 
 void
 main()
 {
-    vec4 texColor = texture2D(texMap, fTexCoord);
-    gl_FragColor = vec4(texColor.xyz * lightWeighting, texColor.a);
+	if(isLaser){
+		gl_FragColor = vec4(0.52734375 , 0.98828125, 0.23046875, 1);
+	} else {
+		vec4 texColor = texture2D(texMap, fTexCoord);
+    	gl_FragColor = vec4(texColor.xyz * lightWeighting, texColor.a);
+	}
 }
 </script>
 
