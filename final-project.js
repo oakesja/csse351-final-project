@@ -7,6 +7,7 @@ var NUM_PLANETS = 9;
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769];
 var sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture, asteroidTexture;
 
+var mouseSize = 8;
 var ASTEROID_FREQ = 10;
 var ASTEROID_RAD = .02;
 var ASTEROID_RAND = .002;
@@ -101,15 +102,43 @@ window.onload = function init() {
     asteroids.push(new Asteroid(0, aTextures[0]));
     asteroids[0].create();
 
-    window.addEventListener('resize', function(event){
-        location.reload();
-    });
+    canvas.addEventListener ("click", function(event) {
+            var x = -2 + 4*(event.clientX-mouseSize)/canvas.width;
+            var y = -2 + 4*(canvas.height-event.clientY+mouseSize)/canvas.height;
+
+            var closestPlanet;
+            var distance = 9999999999;
+
+            for(var i = 1; i<planets.length; i++){
+                var d = lineDistance([planets[i].centerX, planets[i].centerY], [x, y]);
+                if(d<distance){
+                    distance = d;
+                    closestPlanet = i;
+                }
+            }
+
+            planets[closestPlanet].explode();
+        });
+
 
     render();
 }
 
+function lineDistance( point1, point2 ){
+    var xs = 0;
+    var ys = 0;
+     
+    xs = point2[0] - point1[0];
+    xs = xs * xs;
+     
+    ys = point2[1] - point1[1];
+    ys = ys * ys;
+     
+    return Math.sqrt( xs + ys );
+}
+
 window.onresize = function(){
-    window.location.reload();
+    window.location.href = window.location.href;
 }
 
 var initializeBuffers = function(program) {
@@ -355,9 +384,9 @@ window.onkeydown = function(e) {
             render();
             break;
         case 32:
-            var deathStarMusic = new Audio('trap.mp3');
+            var deathStarMusic = new Audio('imperial_march.mp3');
             deathStarMusic.play();
-            planets[4].explode();
+            // planets[4].explode();
             FIRING = true;
             break;
     }
