@@ -40,6 +40,10 @@ var deathStarMaxTick = .5;
 var deathStarCooldown = 1000; // ms
 var deathStarFireTime; 
 
+var soundExplode;
+var sounds = [];
+var planetToExplode;
+
 var sunRad = 54.62;
 var merRad = .191;
 var venRad = .475;
@@ -95,6 +99,7 @@ window.onload = function init() {
     initializeBuffers(program);
     initializeTextures(program);
     initializeThetas();
+    initializeSounds();
 
     deathStar = new DeathStar();
     deathStar.create();
@@ -117,7 +122,15 @@ window.onload = function init() {
                 }
             }
 
-            planets[closestPlanet].explode();
+            planetToExplode = closestPlanet;
+
+            var rand = getRandomInt(0, sounds.length-1);
+
+            sounds[rand].play();
+            
+            FIRING = true;
+
+            // planets[closestPlanet].explode();
         });
 
 
@@ -139,6 +152,25 @@ function lineDistance( point1, point2 ){
 
 window.onresize = function(){
     window.location.href = window.location.href;
+}
+
+var initializeSounds = function(){
+    var soundDS1 = new Audio('imperial_march.mp3');
+    var soundDS2 = new Audio('evasiveaction.mp3');
+    var soundDS3 = new Audio('great.mp3');
+    var soundDS4 = new Audio('trap.mp3');
+    var soundDS5 = new Audio('intensify.mp3');
+    var soundDS6 = new Audio('darkside.mp3');
+
+    sounds.push(soundDS1);
+    sounds.push(soundDS2);
+    sounds.push(soundDS3);
+    sounds.push(soundDS4);
+    sounds.push(soundDS5);
+    sounds.push(soundDS6);
+      
+
+    var soundExplode = new Audio('imperial_march.mp3');
 }
 
 var initializeBuffers = function(program) {
@@ -323,7 +355,7 @@ var deathStarDoTick = function() {
     if(FIRING && deathStarTick >= deathStarMaxTick){
         FIRING = false;
         FIRED = true;
-        planets[4].explode();
+        planets[planetToExplode].explode();
         deathStarTick -= deathStarTickSize;
         deathStarFireTime = new Date();
     } else if(FIRED && deathStarTick <= 0){
@@ -384,12 +416,12 @@ window.onkeydown = function(e) {
             render();
             break;
         case 32:
-            var deathStarMusic = new Audio('imperial_march.mp3');
-            deathStarMusic.play();
-            // planets[4].explode();
-            FIRING = true;
             break;
     }
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function Planet(planetNum, radius, texture) {
