@@ -290,6 +290,8 @@ window.onkeydown = function(e){
             render();
             break;
         case 32:
+            var deathStarMusic = new Audio('trap.mp3');
+            deathStarMusic.play();
             planets[4].explode();
     }
 }
@@ -441,7 +443,7 @@ function asteroidUpdate(){
             this.vertices[i] = [this.vertices[i][0]+this.velocityX, this.vertices[i][1]+this.velocityY, this.vertices[i][2]+this.velocityZ, this.vertices[i][3]];
         };
     } 
-    if(this.fromExp){
+    if(this.fromExp || ASTEROID_BACK){
         this.time+=1;
         for (var i =  0; i < this.vertices.length; i++) {
             this.vertices[i] = [this.vertices[i][0]+this.velocityX, this.vertices[i][1]+this.velocityY, this.vertices[i][2]+this.velocityZ, this.vertices[i][3]];
