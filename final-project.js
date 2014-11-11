@@ -740,11 +740,23 @@ var drawElement = function(vertices, texCords, texture, normals, isSun) {
 }
 
 function drawLaser(point1, point2){
-    vertices = [point1, point2];
+    lines = [point1, point2];
+    var radius = .02;
+    var step = .001;
+    for(var i = .01; i < radius; i+= step){
+        lines.push(vec4(point1[0] + i, point1[1], point1[2], 1), vec4(point2[0] + i, point2[1], point2[2], 1));
+        lines.push(vec4(point1[0], point1[1] + i, point1[2], 1), vec4(point2[0], point2[1] + i, point2[2], 1));
+        lines.push(vec4(point1[0], point1[1] - i, point1[2], 1), vec4(point2[0], point2[1] - i, point2[2], 1));
+        lines.push(vec4(point1[0] - i, point1[1], point1[2], 1), vec4(point2[0] - i, point2[1], point2[2], 1));
+    }
+    drawLines(lines);
+}
+
+function drawLines(lines){
     gl.uniform1i(gl.getUniformLocation(program, "isLaser"), true);
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
-    gl.drawArrays(gl.LINES, 0, vertices.length);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(lines));
+    gl.drawArrays(gl.LINES, 0, lines.length);
     gl.uniform1i(gl.getUniformLocation(program, "isLaser"), false);
 }
 
