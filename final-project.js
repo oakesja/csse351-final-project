@@ -75,8 +75,6 @@ var SCALE = 1;
 var CAMERA_X = 0;
 var CAMERA_Y = 0;
 
-
-
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
     canvas.height = window.innerHeight - 15;
@@ -103,9 +101,6 @@ window.onload = function init() {
 
     deathStar = new DeathStar();
     deathStar.create();
-
-    asteroids.push(new Asteroid(0, aTextures[0]));
-    asteroids[0].create();
 
     canvas.addEventListener ("click", function(event) {
         if(!deathStarActive()){
@@ -195,6 +190,7 @@ var initializeBuffers = function(program) {
     gl.uniform4fv(gl.getUniformLocation(program,
         "diffuseColor"), flatten(diffuseColor));
     gl.uniform1i(gl.getUniformLocation(program, "isLaser"), false);
+    gl.uniform1i(gl.getUniformLocation(program, "isSun"), false);
 }
 
 var initializeTextures = function(program) {
@@ -396,8 +392,6 @@ window.onkeydown = function(e) {
         case 40:
             CAMERA_Y -= step;
             render();
-            break;
-        case 32:
             break;
     }
 }
@@ -720,6 +714,7 @@ function drawPlanet() {
 }
 
 var drawElement = function(vertices, texCords, texture, normals, isSun) {
+    gl.uniform1i(gl.getUniformLocation(program, "isSun"), isSun);
     gl.bindBuffer(gl.ARRAY_BUFFER, nBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(normals));
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -728,6 +723,7 @@ var drawElement = function(vertices, texCords, texture, normals, isSun) {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(texCords));
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.drawArrays(gl.TRIANGLES, 0, vertices.length);
+    gl.uniform1i(gl.getUniformLocation(program, "isSun"), false);
 }
 
 function drawLaser(point1, point2){
