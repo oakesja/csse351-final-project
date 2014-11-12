@@ -34,9 +34,10 @@ var FIRED = false;
 
 var deathStar;
 var deathStarTick = 0;
-var deathStarTickSize = 0.008;
+var deathStarTickSizeEnter = 0.00322;
+var deathStarTickSizeLeaving = 0.008;
 var deathStarMaxTick = .5;
-var deathStarCooldown = 1000; // ms
+var deathStarCooldown = 2000; // ms
 var deathStarFireTime; 
 
 var soundExplode;
@@ -107,6 +108,7 @@ window.onload = function init() {
     asteroids[0].create();
 
     canvas.addEventListener ("click", function(event) {
+        if(!deathStarActive()){
             var x = -2 + 4*(event.clientX-mouseSize)/canvas.width;
             var y = -2 + 4*(canvas.height-event.clientY+mouseSize)/canvas.height;
 
@@ -122,16 +124,13 @@ window.onload = function init() {
             }
 
             planetToExplode = closestPlanet;
-
             var rand = getRandomInt(0, sounds.length-1);
-
             sounds[rand].play();
+            soundExplode.play();
             
             FIRING = true;
-
-            // planets[closestPlanet].explode();
-        });
-
+        }
+    });
 
     render();
 }
@@ -154,22 +153,14 @@ window.onresize = function(){
 }
 
 var initializeSounds = function(){
-    var soundDS1 = new Audio('imperial_march.mp3');
-    var soundDS2 = new Audio('evasiveaction.mp3');
-    var soundDS3 = new Audio('great.mp3');
-    var soundDS4 = new Audio('trap.mp3');
-    var soundDS5 = new Audio('intensify.mp3');
-    var soundDS6 = new Audio('darkside.mp3');
-
-    sounds.push(soundDS1);
-    sounds.push(soundDS2);
-    sounds.push(soundDS3);
-    sounds.push(soundDS4);
-    sounds.push(soundDS5);
-    sounds.push(soundDS6);
+    sounds.push(new Audio('badfeeling.mp3'));
+    sounds.push(new Audio('doomed.mp3'));
+    sounds.push(new Audio('evasiveaction.mp3'));
+    sounds.push(new Audio('intensify.mp3'));
+    sounds.push(new Audio('trap.mp3'));
+    sounds.push(new Audio('rebelscum.mp3'));
       
-
-    var soundExplode = new Audio('imperial_march.mp3');
+    soundExplode = new Audio('deathstar.mp3');
 }
 
 var initializeBuffers = function(program) {
@@ -347,7 +338,7 @@ var deathStarDoTick = function() {
         var point2 = vec4(planets[planetToExplode].centerX, planets[planetToExplode].centerY, planets[planetToExplode].centerZ, 1);
         drawLaser(point1, point2);
         planets[planetToExplode].explode();
-        deathStarTick -= deathStarTickSize;
+        deathStarTick -= deathStarTickSizeLeaving;
         deathStarFireTime = new Date();
     } else if(FIRED && deathStarTick <= 0){
         deathStarTick = 0;
@@ -355,9 +346,9 @@ var deathStarDoTick = function() {
     } else if(deathStarTick >= deathStarMaxTick){
         FIRED = false;
     } else if (FIRING) {
-        deathStarTick += deathStarTickSize;
+        deathStarTick += deathStarTickSizeEnter;
     } else if (FIRED && hasCooledDown()) {
-        deathStarTick -= deathStarTickSize;
+        deathStarTick -= deathStarTickSizeLeaving;
     }
 }
 
