@@ -86,7 +86,7 @@ var CAMERA_Y = 0;
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
-    canvas.height = window.innerHeight - 15;
+    canvas.height = window.innerHeight - 50;
     canvas.width = window.innerWidth - 15;
 
     gl = WebGLUtils.setupWebGL(canvas);
@@ -96,7 +96,7 @@ window.onload = function init() {
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     aspect = canvas.width / canvas.height;
-    gl.clearColor(0, 0, 0, 1.0);
+    gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
@@ -308,16 +308,27 @@ var render = function() {
     }
 
     for (var i = 0; i < asteroids.length; i++) {
-        if (asteroids[i].centerY > 1.1 || asteroids[i].centerX > 1.1 || asteroids[i].centerZ > 1.1 || asteroids[i].time > 10) {
+        if (asteroids[i].changeY > 1.1 || asteroids[i].changeX > 1.1 || asteroids[i].changeZ > 1.1 || asteroids[i].time > 10) {
             asteroids.splice(i, 1);
         } else {
             asteroids[i].update();
+
+             mv2 = mat4(1, 0, 0, asteroids[i].changeX,
+                0, 1, 0, asteroids[i].changeY,
+                0, 0, 1, asteroids[i].changeZ,
+                0, 0, 0, 1);
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mult(mv2, mv)));
+
             asteroids[i].draw();
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mv));
         }
     }
 
     for (var i = 0; i < explosions.length; i++) {
         explosions[i].update();
+
         explosions[i].draw();
         if (explosions[i].time == 1) {
             for (var j = 0; j < 10; j++) {
@@ -439,8 +450,7 @@ function Planet(planetNum, radius, texture) {
     this.create = createSpaceObject;
     this.draw = drawPlanet;
     this.explode = planetExplode;
-    this.update = updateCoords
-    if (planetNum == 3) {
+    if (planetNum == 6) {
         this.hasRings = true;
     } else {
         this.hasRings = false;
@@ -502,6 +512,10 @@ function ExplosionAsteroid(texture, x, y, z) {
     this.velocityX = -.03 + Math.random() * .06;
     this.velocityY = -.03 + Math.random() * .06; // +1 to velocities
     this.velocityZ = .05;
+    this.changeX = 0;
+    this.changeY = 0;
+    this.changeZ = 0;
+
     this.time = 0;
 
     this.texture = texture;
@@ -527,14 +541,11 @@ function Asteroid(astNum, texture) {
     this.centerZ = coords[2];
     if (ASTEROID_SIDES) {
         var velocity = Math.random() / 20;
-        this.velocityX = velocity;
-        this.velocityY = velocity;
-        this.velocityZ = 0;
-    }
-    if (ASTEROID_BACK) {
-        this.velocityX = 1 + .04;
-        this.velocityY = 1 + .04; // +1 to velocities
-        this.velocityZ = 1 + .05;
+        this.velocity = velocity;
+        this.changeX = 0;
+        this.changeY = 0;
+        this.changeZ = 0;
+
     }
 
     this.texture = texture;
@@ -576,18 +587,22 @@ function getAsteroidCoor() {
 
 function asteroidUpdate() {
     if (!this.fromExp) {
-        this.centerX += this.velocityX;
-        this.centerY += this.velocityY;
+        this.changeX += this.velocity;
+        this.changeY += this.velocity;
         // this.centerZ+=this.velocityZ;
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
-        }
+        // for (var i = 0; i < this.vertices.length; i++) {
+        //     this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
+        // }
     }
     if (this.fromExp) {
         this.time += 1;
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
-        }
+        this.changeX += this.velocityX;
+        this.changeY += this.velocityY;
+        this.changeZ += this.velocityZ;
+
+        // for (var i = 0; i < this.vertices.length; i++) {
+        //     this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
+        // }
     }
 }
 
@@ -787,7 +802,7 @@ function incrementThetas() {
 function getSphereCenter(planetNum) {
     var x = MAX_DISTANCES_FROM_SUN[planetNum] * SCALE_FACTOR_DISTANCE * Math.cos(thetas[planetNum]);
     var z = MIN_DISTANCES_FROM_SUN[planetNum] * SCALE_FACTOR_DISTANCE * Math.sin(thetas[planetNum]);
-    var y = Math.sqrt(x * x + z * z) * Math.sin(INCLINATIONS[planetNum]);
+    var y = Math.sqrt(x * x + z * z) * Math.sin(INCLINATIONS[planetNum]*Math.PI/90);
     return [x, y, z];
 }
 
@@ -806,8 +821,10 @@ function initializePlanets() {
     }
 }
 
-function updateCoords(coords) {
-    this.centerX = coords[0];
-    this.centerY = coords[1];
-    this.centerZ = coords[2];
+function reset(){
+    window.location.reload();
+}
+
+function showInstructions(){
+    alert("Click a planet to destroy it\nArrows to move around\nPgUp to zoom in\nPgDn to zoom out");
 }
