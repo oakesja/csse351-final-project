@@ -77,7 +77,7 @@ var CAMERA_Y = 0;
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
-    canvas.height = window.innerHeight - 15;
+    canvas.height = window.innerHeight - 50;
     canvas.width = window.innerWidth - 15;
 
     gl = WebGLUtils.setupWebGL(canvas);
@@ -769,4 +769,12 @@ function getSphereCenter(planetNum) {
     var z = MIN_DISTANCES_FROM_SUN[planetNum] * SCALE_FACTOR_DISTANCE * Math.sin(thetas[planetNum]);
     var y = Math.sqrt(x * x + z * z) * Math.sin(INCLINATIONS[planetNum]);
     return [x, y, z];
+}
+
+function reset(){
+    window.location.reload();
+}
+
+function showInstructions(){
+    alert("Click a planet to destroy it\nArrows to move around\nPgUp to zoom in\nPgDn to zoom out");
 }
