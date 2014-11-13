@@ -42,6 +42,7 @@ var deathStarCooldown = 2000; // ms
 var deathStarFireTime; 
 
 var soundExplode;
+var warmUp;
 var sounds = [];
 var planetToExplode;
 
@@ -138,7 +139,7 @@ window.onload = function init() {
             planetToExplode = closestPlanet;
             var rand = getRandomInt(0, sounds.length-1);
             sounds[rand].play();
-            soundExplode.play();
+            // warmUp.play();
             
             FIRING = true;
         }
@@ -172,7 +173,8 @@ var initializeSounds = function(){
     sounds.push(new Audio('trap.mp3'));
     sounds.push(new Audio('rebelscum.mp3'));
       
-    soundExplode = new Audio('deathstar.mp3');
+    warmUp = new Audio('deathstar.mp3');
+    soundExplode = new Audio('deathstarExplosion.mp3');
 }
 
 var initializeBuffers = function(program) {
@@ -368,6 +370,7 @@ var deathStarDoTick = function() {
     if(FIRING && deathStarTick >= deathStarMaxTick){
         FIRING = false;
         FIRED = true;
+        soundExplode.play();
         var point1 = vec4(deathStar.centerX + deathStarTick, deathStar.centerY + deathStarTick, deathStar.centerZ + deathStarTick, 1);
         var point2 = vec4(planets[planetToExplode].centerX, planets[planetToExplode].centerY, planets[planetToExplode].centerZ, 1);
         drawLaser(point1, point2);
