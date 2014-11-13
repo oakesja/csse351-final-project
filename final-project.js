@@ -20,7 +20,7 @@ var MIN_DISTANCES_FROM_SUN = [0.0, 460.0, 1075.0, 1471.0, 1667.0, 1809.0, 2000.0
 var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 2100.0, 2400.0, 2800.0, 3300.0];
 var SCALE_FACTOR_DISTANCE = 0.0003;
 var SCALE_FACTOR_RADIUS = 0.1;
-var ROTATION_SPEED = 0.1; //increase or decrease to make planets move faster or slower
+var ROTATION_SPEED = 0.05; //increase or decrease to make planets move faster or slower
 var EXP_RAD = .05;
 var EXP_RAND = .003;
 var EXP_TIME = 10;
@@ -299,7 +299,7 @@ var render = function() {
     planets[0].draw();
 
     for (var i = 1; i < NUM_PLANETS - 1; i++) {
-        if(destroyedPlanets.indexOf(i) < 0){
+        if(!(destroyedPlanets.indexOf(i) > -1)){
             planets.push(new Planet(i, .05, textures[i]));
             planets[i].create();
             planets[i].draw(); 
@@ -480,7 +480,6 @@ function DeathStar(texture) {
 }
 
 function planetExplode() {
-    planets.splice(this.planetNum, 1);
     explosions.push(new Explosion(explosionTexture, this.texture, this.centerX, this.centerY, this.centerZ));
 }
 
