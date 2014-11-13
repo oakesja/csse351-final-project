@@ -32,6 +32,8 @@ var DS_Z = -.09;
 var FIRING = false;
 var FIRED = false;
 
+var destroyedPlanets = [];
+
 var deathStar;
 var deathStarTick = 0;
 var deathStarTickSizeEnter = 0.00322;
@@ -121,7 +123,7 @@ window.onload = function init() {
             var closestPlanet;
             var distance = 9999999999;
 
-            for(var i = 0; i<planets.length; i++){
+            for(var i = 1; i<planets.length; i++){
                 var d = lineDistance([planets[i].centerX, planets[i].centerY], [x, y]);
                 if(d<distance){
                     distance = d;
@@ -279,9 +281,10 @@ var render = function() {
         0, 0, SCALE, 0,
         0, 0, 0, 1);
 
-    looking = lookAt (vec3(0,0,4), vec3(0,0,0), vec3(0.0, 1.0, 0.0));
-    projection = perspective (30.0, aspect, 100, 1);
-    mv = mult(looking,mv);
+    //looking = lookAt (vec3(0,0,-4), vec3(0,0,0), vec3(0.0, 1.0, 0.0));
+    //projection = perspective (30.0, aspect, 100, 1);
+    projection = ortho (-1, 1, -1, 1, -1, 1);
+    //mv = mult(looking,mv);
 
     gl.uniformMatrix4fv (projectionLoc, false, flatten(projection));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mv));
@@ -296,9 +299,11 @@ var render = function() {
     planets[0].draw();
 
     for (var i = 1; i < NUM_PLANETS - 1; i++) {
-        planets.push(new Planet(i, .05, textures[i]));
-        planets[i].create();
-        planets[i].draw();
+        if(destroyedPlanets.indexOf(i) < 0){
+            planets.push(new Planet(i, .05, textures[i]));
+            planets[i].create();
+            planets[i].draw(); 
+        }
     }
     incrementThetas();
 
@@ -366,6 +371,7 @@ var deathStarDoTick = function() {
         planets[planetToExplode].explode();
         deathStarTick -= deathStarTickSizeLeaving;
         deathStarFireTime = new Date();
+        destroyedPlanets.push(planetToExplode);
     } else if(FIRED && deathStarTick <= 0){
         deathStarTick = 0;
         FIRED = false;
