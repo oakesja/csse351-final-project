@@ -86,7 +86,7 @@ window.onload = function init() {
     }
 
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0, 0, 0, 1.0);
+    gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
@@ -431,7 +431,7 @@ function Planet(planetNum, radius, texture) {
     this.create = createSpaceObject;
     this.draw = drawPlanet;
     this.explode = planetExplode;
-    if (planetNum == 3) {
+    if (planetNum == 6) {
         this.hasRings = true;
     } else {
         this.hasRings = false;
@@ -783,7 +783,7 @@ function incrementThetas() {
 function getSphereCenter(planetNum) {
     var x = MAX_DISTANCES_FROM_SUN[planetNum] * SCALE_FACTOR_DISTANCE * Math.cos(thetas[planetNum]);
     var z = MIN_DISTANCES_FROM_SUN[planetNum] * SCALE_FACTOR_DISTANCE * Math.sin(thetas[planetNum]);
-    var y = Math.sqrt(x * x + z * z) * Math.sin(INCLINATIONS[planetNum]);
+    var y = Math.sqrt(x * x + z * z) * Math.sin(INCLINATIONS[planetNum]*Math.PI/90);
     return [x, y, z];
 }
 
