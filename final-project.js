@@ -13,7 +13,7 @@ var ASTEROID_RAND = .002;
 var ASTEROID_SIDES = true;
 var ASTEROID_BACK = false;
 var NUM_PLANETS = 10;
-var planetsLeft = [1,2,3,4,5,6,7,8,9];
+var destroyedPlanets = [];
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769, .5]; // last value to test for asteroid, remove in final
 var ECCENTRICITIES = [0, 0.2056, 0.0068, 0.0167, 0.0934, 0.0484, 0.0542, 0.0472, 0.0086];
 var RADII = [10, 4.8, 12.1, 12.7, 6.7, 142, 120, 51.2, 48.6];
@@ -118,17 +118,22 @@ window.onload = function init() {
         if(!deathStarActive()){
             var x = -2 + 4*(event.clientX-mouseSize)/canvas.width;
             var y = -2 + 4*(canvas.height-event.clientY+mouseSize)/canvas.height;
+            console.log(x);
+            console.log(y);
 
-            var closestPlanet;
+            var closestPlanet = 0;
             var distance = 9999999999;
 
-            for(var i = 0; i<planets.length; i++){
-                var d = lineDistance([planets[i].centerX, planets[i].centerY], [x, y]);
-                if(d<distance){
-                    distance = d;
-                    closestPlanet = i;
+            for(var i = 1; i<planets.length; i++){
+                if(destroyedPlanets.indexOf(i)==-1){
+                    var d = lineDistance([planets[i].centerX, planets[i].centerY], [x, y]);
+                    if(d<distance){
+                        distance = d;
+                        closestPlanet = planets[i].planetNum;
+                    }
                 }
             }
+            console.log(closestPlanet);
 
             planetToExplode = closestPlanet;
             var rand = getRandomInt(0, sounds.length-1);
@@ -296,10 +301,12 @@ var render = function() {
     planets[0].create();
     planets[0].draw();
 
-    for (var i = 1; i < planetsLeft.length- 1; i++) {
-        planets.push(new Planet(i, .05+RADII[planetsLeft[i]]/3000, textures[planetsLeft[i]]));
-        planets[i].create();
-        planets[i].draw();
+    for (var i = 1; i < NUM_PLANETS- 1; i++) {
+        planets.push(new Planet(i, .05+RADII[i]/3000, textures[i]));
+        if(!(destroyedPlanets.indexOf(i) > -1)){
+            planets[planets.length-1].create();
+            planets[planets.length-1].draw();
+        }
     }
     incrementThetas();
 
@@ -365,9 +372,7 @@ var deathStarDoTick = function() {
         var point2 = vec4(planets[planetToExplode].centerX, planets[planetToExplode].centerY, planets[planetToExplode].centerZ, 1);
         drawLaser(point1, point2);
         planets[planetToExplode].explode();
-        var i = planetsLeft.indexOf(planetToExplode);
-
-        planetsLeft.splice(i, 1);
+        destroyedPlanets.push(planetToExplode);
         deathStarTick -= deathStarTickSizeLeaving;
         deathStarFireTime = new Date();
     } else if(FIRED && deathStarTick <= 0){
@@ -436,6 +441,7 @@ function getRandomInt(min, max) {
 }
 
 function Planet(planetNum, radius, texture) {
+    this.planetNum = planetNum;
     var coords = getSphereCenter(planetNum);
     this.centerX = coords[0];
     this.centerY = coords[1];
@@ -479,7 +485,6 @@ function DeathStar(texture) {
 }
 
 function planetExplode() {
-    planets.splice(this.planetNum, 1);
     explosions.push(new Explosion(explosionTexture, this.texture, this.centerX, this.centerY, this.centerZ));
 }
 
