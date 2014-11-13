@@ -16,11 +16,11 @@ var NUM_PLANETS = 10;
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769, .5]; // last value to test for asteroid, remove in final
 var ECCENTRICITIES = [0, 0.2056, 0.0068, 0.0167, 0.0934, 0.0484, 0.0542, 0.0472, 0.0086];
 var RADII = [1.62, .191, .475, 1, .265, 0.61, 0.57, 0.84, 0.78];
-var MIN_DISTANCES_FROM_SUN = [0.0, 460.0, 1075.0, 1471.0, 1667.0, 1809.0, 13480.0, 27390.0, 44560.0, 1500.0]; // last values to test for asteroid, remove in final
-var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 15030.0, 30030.0, 45460.0, 2000.0];
+var MIN_DISTANCES_FROM_SUN = [0.0, 460.0, 1075.0, 1471.0, 1667.0, 1809.0, 2000.0, 2300.0, 2700.0, 3200.0]; // last values to test for asteroid, remove in final
+var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 2100.0, 2400.0, 2800.0, 3300.0];
 var SCALE_FACTOR_DISTANCE = 0.0003;
 var SCALE_FACTOR_RADIUS = 0.1;
-var ROTATION_SPEED = 0.04; //increase or decrease to make planets move faster or slower
+var ROTATION_SPEED = 0.1; //increase or decrease to make planets move faster or slower
 var EXP_RAD = .05;
 var EXP_RAND = .003;
 var EXP_TIME = 10;
@@ -70,6 +70,15 @@ var ambientColor = vec4(.6, .6, .6, 1.0);
 var specularColor = vec4(1.0, 1, 1.0, 1.0);
 var diffuseColor = vec4(.3, .3, .3, 1.0);
 
+var projectionLoc;
+var projection;
+var planetArea = 4;
+var planetArea2 = planetArea / 2.0;
+var windowMin = -planetArea;
+var windowMax = planetArea + planetArea2;
+var aspect;
+var looking;
+
 var program;
 var SCALE = 1;
 var CAMERA_X = 0;
@@ -86,6 +95,7 @@ window.onload = function init() {
     }
 
     gl.viewport(0, 0, canvas.width, canvas.height);
+    aspect = canvas.width / canvas.height;
     gl.clearColor(0, 0, 0, 1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -98,6 +108,7 @@ window.onload = function init() {
     initializeTextures(program);
     initializeThetas();
     initializeSounds();
+    initializePlanets();
 
     deathStar = new DeathStar();
     deathStar.create();
@@ -159,6 +170,9 @@ var initializeSounds = function(){
 }
 
 var initializeBuffers = function(program) {
+
+    projectionLoc  = gl.getUniformLocation (program, "projection");
+
     vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, 16 * maxPoints, gl.STATIC_DRAW);
@@ -265,6 +279,11 @@ var render = function() {
         0, 0, SCALE, 0,
         0, 0, 0, 1);
 
+    looking = lookAt (vec3(0,0,4), vec3(0,0,0), vec3(0.0, 1.0, 0.0));
+    projection = perspective (30.0, aspect, 100, 1);
+    mv = mult(looking,mv);
+
+    gl.uniformMatrix4fv (projectionLoc, false, flatten(projection));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mv));
 
     var lightPosition = vec4(0, 0, 0, 1.0);
@@ -420,6 +439,7 @@ function Planet(planetNum, radius, texture) {
     this.create = createSpaceObject;
     this.draw = drawPlanet;
     this.explode = planetExplode;
+    this.update = updateCoords
     if (planetNum == 3) {
         this.hasRings = true;
     } else {
@@ -769,4 +789,25 @@ function getSphereCenter(planetNum) {
     var z = MIN_DISTANCES_FROM_SUN[planetNum] * SCALE_FACTOR_DISTANCE * Math.sin(thetas[planetNum]);
     var y = Math.sqrt(x * x + z * z) * Math.sin(INCLINATIONS[planetNum]);
     return [x, y, z];
+}
+
+function initializePlanets() {
+
+    planets = [];
+
+    planets.push(new Planet(0, .1, textures[0]));
+    planets[0].create();
+    planets[0].draw();
+
+    for (var i = 1; i < NUM_PLANETS - 1; i++) {
+        planets.push(new Planet(i, .05, textures[i]));
+        planets[i].create();
+        planets[i].draw();
+    }
+}
+
+function updateCoords(coords) {
+    this.centerX = coords[0];
+    this.centerY = coords[1];
+    this.centerZ = coords[2];
 }

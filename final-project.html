@@ -12,6 +12,7 @@ uniform vec4 lightPosition;
 uniform bool isSun;
 uniform bool isLaser;
 uniform mat4 modelViewMatrix;
+uniform mat4 projection;
 uniform vec4 ambientColor;
 uniform vec4 specularColor; 
 uniform vec4 diffuseColor;
@@ -22,7 +23,7 @@ main()
 	if(isLaser){
 		gl_Position = vPosition;
 	} else {
-		vec4 pos = modelViewMatrix * vPosition;
+		vec4 pos = projection * modelViewMatrix * vPosition;
 		vec3 light = (modelViewMatrix * lightPosition).xyz;
 		vec3 direction = normalize(light - pos.xyz);
 		if(isSun){
@@ -36,6 +37,7 @@ main()
 		fTexCoord = vTexCoord;
 	    gl_Position = pos;
 	}
+
 }
 </script>
 
