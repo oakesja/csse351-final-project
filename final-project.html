@@ -23,19 +23,25 @@ main()
 	if(isLaser){
 		gl_Position = vPosition;
 	} else {
-		vec4 pos = projection * modelViewMatrix * vPosition;
-		vec3 light = (modelViewMatrix * lightPosition).xyz;
-		vec3 direction = normalize(light - pos.xyz);
+		
 		if(isSun){
+			vec4 pos =  modelViewMatrix * vPosition;
+			vec3 light = (modelViewMatrix * lightPosition).xyz;
+			vec3 direction = normalize(light - pos.xyz);
 			float directionalLightWeighting = max(dot(-vNormal.xyz, direction), 0.0);
 			lightWeighting = ambientColor.rgb + specularColor.rgb * directionalLightWeighting;
 		} else {
-			float directionalLightWeighting = max(dot(vNormal.xyz, direction), 0.0);
-			lightWeighting = ambientColor.rgb + diffuseColor.rgb + specularColor.rgb * (directionalLightWeighting * 4.0);
+			vec4 pos = modelViewMatrix * vPosition;
+			vec3 light = (modelViewMatrix * lightPosition).xyz;
+			vec3 direction = normalize(light - pos.xyz);
+			vec4 newNor = projection * modelViewMatrix * vNormal;
+			float directionalLightWeighting = max(dot(newNor.xyz, direction), 0.0);
+			
+			lightWeighting = ambientColor.rgb + diffuseColor.rgb + specularColor.rgb * (directionalLightWeighting * .7);
 		}
 		
 		fTexCoord = vTexCoord;
-	    gl_Position = pos;
+	    gl_Position = projection * modelViewMatrix * vPosition;;
 	}
 
 }

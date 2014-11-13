@@ -13,14 +13,15 @@ var ASTEROID_RAND = .002;
 var ASTEROID_SIDES = true;
 var ASTEROID_BACK = false;
 var NUM_PLANETS = 10;
+var planetsLeft = [1,2,3,4,5,6,7,8,9];
 var INCLINATIONS = [0, 7.005, 3.3947, 0, 1.857, 1.305, 2.484, 0.770, 1.769, .5]; // last value to test for asteroid, remove in final
 var ECCENTRICITIES = [0, 0.2056, 0.0068, 0.0167, 0.0934, 0.0484, 0.0542, 0.0472, 0.0086];
-var RADII = [1.62, .191, .475, 1, .265, 0.61, 0.57, 0.84, 0.78];
+var RADII = [10, 4.8, 12.1, 12.7, 6.7, 142, 120, 51.2, 48.6];
 var MIN_DISTANCES_FROM_SUN = [0.0, 460.0, 1075.0, 1471.0, 1667.0, 1809.0, 2000.0, 2300.0, 2700.0, 3200.0]; // last values to test for asteroid, remove in final
 var MAX_DISTANCES_FROM_SUN = [0.0, 698.0, 1089.0, 1521.0, 1791.0, 1957.0, 2100.0, 2400.0, 2800.0, 3300.0];
-var SCALE_FACTOR_DISTANCE = 0.0003;
+var SCALE_FACTOR_DISTANCE = 0.0004;
 var SCALE_FACTOR_RADIUS = 0.1;
-var ROTATION_SPEED = 0.1; //increase or decrease to make planets move faster or slower
+var ROTATION_SPEED = 0.01; //increase or decrease to make planets move faster or slower
 var EXP_RAD = .05;
 var EXP_RAND = .003;
 var EXP_TIME = 10;
@@ -95,7 +96,7 @@ window.onload = function init() {
     }
 
     gl.viewport(0, 0, canvas.width, canvas.height);
-    aspect = canvas.width / canvas.height;
+    aspect = 1; //canvas.width / canvas.height;
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -291,12 +292,12 @@ var render = function() {
 
     planets = [];
 
-    planets.push(new Planet(0, .1, textures[0]));
+    planets.push(new Planet(0, .2, textures[0]));
     planets[0].create();
     planets[0].draw();
 
-    for (var i = 1; i < NUM_PLANETS - 1; i++) {
-        planets.push(new Planet(i, .05, textures[i]));
+    for (var i = 1; i < planetsLeft.length- 1; i++) {
+        planets.push(new Planet(i, .05+RADII[planetsLeft[i]]/3000, textures[planetsLeft[i]]));
         planets[i].create();
         planets[i].draw();
     }
@@ -364,6 +365,9 @@ var deathStarDoTick = function() {
         var point2 = vec4(planets[planetToExplode].centerX, planets[planetToExplode].centerY, planets[planetToExplode].centerZ, 1);
         drawLaser(point1, point2);
         planets[planetToExplode].explode();
+        var i = planetsLeft.indexOf(planetToExplode);
+
+        planetsLeft.splice(i, 1);
         deathStarTick -= deathStarTickSizeLeaving;
         deathStarFireTime = new Date();
     } else if(FIRED && deathStarTick <= 0){
@@ -375,6 +379,7 @@ var deathStarDoTick = function() {
         deathStarTick += deathStarTickSizeEnter;
     } else if (FIRED && hasCooledDown()) {
         deathStarTick -= deathStarTickSizeLeaving;
+
     }
 }
 
@@ -450,7 +455,7 @@ function Planet(planetNum, radius, texture) {
     this.create = createSpaceObject;
     this.draw = drawPlanet;
     this.explode = planetExplode;
-    if (planetNum == 6) {
+    if (planetNum == 5) {
         this.hasRings = true;
     } else {
         this.hasRings = false;
@@ -724,8 +729,8 @@ function drawPlanet() {
     var texCords = [];
     var normals = [];
 
-    var insideRad = .05;
-    var outsideRad = .1;
+    var insideRad = this.radius;
+    var outsideRad = this.radius+.06;
     var steps = 50;
     var deltaTheta = Math.PI * 2 / steps;
 
