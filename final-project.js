@@ -289,16 +289,27 @@ var render = function() {
     }
 
     for (var i = 0; i < asteroids.length; i++) {
-        if (asteroids[i].centerY > 1.1 || asteroids[i].centerX > 1.1 || asteroids[i].centerZ > 1.1 || asteroids[i].time > 10) {
+        if (asteroids[i].changeY > 1.1 || asteroids[i].changeX > 1.1 || asteroids[i].changeZ > 1.1 || asteroids[i].time > 10) {
             asteroids.splice(i, 1);
         } else {
             asteroids[i].update();
+
+             mv2 = mat4(1, 0, 0, asteroids[i].changeX,
+                0, 1, 0, asteroids[i].changeY,
+                0, 0, 1, asteroids[i].changeZ,
+                0, 0, 0, 1);
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mult(mv2, mv)));
+
             asteroids[i].draw();
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(mv));
         }
     }
 
     for (var i = 0; i < explosions.length; i++) {
         explosions[i].update();
+
         explosions[i].draw();
         if (explosions[i].time == 1) {
             for (var j = 0; j < 10; j++) {
@@ -482,6 +493,10 @@ function ExplosionAsteroid(texture, x, y, z) {
     this.velocityX = -.03 + Math.random() * .06;
     this.velocityY = -.03 + Math.random() * .06; // +1 to velocities
     this.velocityZ = .05;
+    this.changeX = 0;
+    this.changeY = 0;
+    this.changeZ = 0;
+
     this.time = 0;
 
     this.texture = texture;
@@ -507,14 +522,11 @@ function Asteroid(astNum, texture) {
     this.centerZ = coords[2];
     if (ASTEROID_SIDES) {
         var velocity = Math.random() / 20;
-        this.velocityX = velocity;
-        this.velocityY = velocity;
-        this.velocityZ = 0;
-    }
-    if (ASTEROID_BACK) {
-        this.velocityX = 1 + .04;
-        this.velocityY = 1 + .04; // +1 to velocities
-        this.velocityZ = 1 + .05;
+        this.velocity = velocity;
+        this.changeX = 0;
+        this.changeY = 0;
+        this.changeZ = 0;
+
     }
 
     this.texture = texture;
@@ -556,18 +568,22 @@ function getAsteroidCoor() {
 
 function asteroidUpdate() {
     if (!this.fromExp) {
-        this.centerX += this.velocityX;
-        this.centerY += this.velocityY;
+        this.changeX += this.velocity;
+        this.changeY += this.velocity;
         // this.centerZ+=this.velocityZ;
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
-        }
+        // for (var i = 0; i < this.vertices.length; i++) {
+        //     this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
+        // }
     }
     if (this.fromExp) {
         this.time += 1;
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
-        }
+        this.changeX += this.velocityX;
+        this.changeY += this.velocityY;
+        this.changeZ += this.velocityZ;
+
+        // for (var i = 0; i < this.vertices.length; i++) {
+        //     this.vertices[i] = [this.vertices[i][0] + this.velocityX, this.vertices[i][1] + this.velocityY, this.vertices[i][2] + this.velocityZ, this.vertices[i][3]];
+        // }
     }
 }
 
